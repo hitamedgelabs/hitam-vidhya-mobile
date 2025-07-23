@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from 'react-native';
 import Input from '../../components/AuthInput';
 import Button from '../../components/AuthButton';
 import colors from '../../constants/Colors';
@@ -8,52 +18,84 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const fieldValidation = () => {
+    if(email === '' && password === '') {
+      alert('Please enter your email and password');
+      return false;
+    }
+    if(email === '') {
+      alert('Please enter your email');
+      return false;
+    }
+    if(password === '') {
+      alert('Please enter your password');
+      return false;
+    }
+    if(!email.includes('@gmail.com')) {
+      alert('Please enter a valid email');
+      return false;
+    }
+    return true;
+  }
+
   const handleLogin = () => {
+    const canProceed = fieldValidation();
+    if (!canProceed) return;
     console.log('Login pressed', email, password);
-    // TODO: Implement authentication
+    navigation.navigate("ApplicationMain");
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* ✅ Company Logo */}
-      <Image
-        source={require('../../../assets/images/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Login</Text>
-
-      <Input
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Login" onPress={handleLogin} />
-      
-      <View style={styles.newUserText}>
-        <Text style={{ color: colors.text, textAlign: 'center' }}>
-          Don't have an account?{' '}
-        </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-          <Text style={{ color: colors.darkGreen }}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safeContainer}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={40} // adjust based on header height if any
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+          <Image
+            source={require('../../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>Login</Text>
+          <Input
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Button title="Login" onPress={handleLogin} />
+          <View style={styles.newUserText}>
+            <Text style={{ color: colors.text, textAlign: 'center' }}>
+              Don't have an account?{' '}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+              <Text style={{ color: colors.darkGreen }}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
     padding: 20,
+  },
+  scrollContainer: {
     justifyContent: 'center',
+    flexGrow: 1,
   },
   logo: {
     width: 150,
