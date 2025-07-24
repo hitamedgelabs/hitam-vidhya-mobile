@@ -14,7 +14,7 @@ const Input = ({ placeholder, ...rest }) => {
         {...rest}
         keyboardType='phone-pad'
       />);
-  else if(placeholder === "Password" || placeholder === "Confirm Password")
+  else if(placeholder.includes("Password"))
     return (
       <View style={[styles.input, {paddingLeft: 12}]}>
         <TextInput

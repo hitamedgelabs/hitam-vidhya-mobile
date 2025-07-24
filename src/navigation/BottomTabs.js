@@ -4,44 +4,57 @@ import LinearGradient from 'react-native-linear-gradient';
 import Dashboard from '../screens/Dashboard/DashboardScreen';
 import Courses from '../screens/Courses/CoursesScreen';
 import Profile from '../screens/Profile/ProfileScreen';
+import CourseDetailScreen from '../screens/Courses/CourseDetailScreen'; // ✅ import this
 
 const BottomTabs = () => {
   const [activePage, setActivePage] = useState('Dashboard');
+  const [courseId, setCourseId] = useState('');
 
   const renderPage = () => {
+    if (courseId !== '') {
+      return <CourseDetailScreen courseId={courseId} />;
+    }
     switch (activePage) {
-        case 'Dashboard':
+      case 'Dashboard':
         return <Dashboard />;
-        case 'Courses':
-        return <Courses/>;
-        case 'Profile':
-        return <Profile/>;
-        default:
+      case 'Courses':
+        return <Courses onSelectCourse={(id) => setCourseId(id)} />;
+      case 'Profile':
+        return <Profile />;
+      default:
         return null;
     }
- };
-    useEffect(() => {
-     const backAction = () => {
-       if (activePage !== 'Dashboard') {
-         setActivePage('Dashboard');
-         return true; // prevent default back action
-       }
-       BackHandler.exitApp();
-     };
-     const backHandler = BackHandler.addEventListener(
-       'hardwareBackPress',
-       backAction
-     );
-   
-     return () => backHandler.remove();
-   }, [activePage]);
+  };
 
+  useEffect(() => {
+    const backAction = () => {
+      if (courseId !== '') {
+        setCourseId('');
+        return true;
+      }
+      if (activePage !== 'Dashboard') {
+        setActivePage('Dashboard');
+        return true;
+      }
+      BackHandler.exitApp();
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [activePage, courseId]);
+
+  const setPage = (page) => {
+    if (courseId !== '') {
+      setCourseId('');
+    }
+    setActivePage(page);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>{renderPage()}</View>
         <LinearGradient colors={['#F9FBFFCF', '#F9FBFF']} style={styles.navContainer}>
-          <TouchableOpacity onPress={() => setActivePage('Dashboard')} style={styles.navButton}>
+          <TouchableOpacity onPress={() => setPage('Dashboard')} style={styles.navButton}>
             <Image
               source={
                 activePage === 'Dashboard'
@@ -50,9 +63,12 @@ const BottomTabs = () => {
               }
               style={[styles.icon, activePage === 'Dashboard' && styles.selectedIcon]}
             />
-            <Text style={[styles.bottomText, activePage === 'Dashboard' && {color: '#22223B'}]}>Dashboard</Text>
+            <Text style={[styles.bottomText, activePage === 'Dashboard' && { color: '#22223B' }]}>
+              Dashboard
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActivePage('Courses')} style={styles.navButton}>
+
+          <TouchableOpacity onPress={() => setPage('Courses')} style={styles.navButton}>
             <Image
               source={
                 activePage === 'Courses'
@@ -61,9 +77,12 @@ const BottomTabs = () => {
               }
               style={[styles.icon, activePage === 'Courses' && styles.selectedIcon]}
             />
-            <Text style={[styles.bottomText, activePage === 'Courses' && {color: '#22223B'}]}>Courses</Text>
+            <Text style={[styles.bottomText, activePage === 'Courses' && { color: '#22223B' }]}>
+              Courses
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActivePage('Profile')} style={styles.navButton}>
+
+          <TouchableOpacity onPress={() => setPage('Profile')} style={styles.navButton}>
             <Image
               source={
                 activePage === 'Profile'
@@ -72,7 +91,9 @@ const BottomTabs = () => {
               }
               style={[styles.icon, activePage === 'Profile' && styles.selectedIcon]}
             />
-            <Text style={[styles.bottomText, activePage === 'Profile' && {color: '#22223B'}]}>Profile</Text>
+            <Text style={[styles.bottomText, activePage === 'Profile' && { color: '#22223B' }]}>
+              Profile
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
     </View>
@@ -115,7 +136,7 @@ const styles = StyleSheet.create({
   bottomText: {
     fontSize: 10,
     color: '#618A61',
-    fontWeight: 400,
+    fontWeight: '400',
     fontFamily: 'Open Sans Light',
     textAlign: 'center',
   },

@@ -1,20 +1,51 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
 import colors from '../../constants/Colors';
+import EditProfileModal from '../../components/EditProfileModal';
+import ChangePasswordModal from '../../components/ChangePasswordModal';
+import ProfileImage from '../../components/ProfileImage';
 
 const ProfileScreen = () => {
+  const [editVisible, setEditVisible] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const handleLogout = () => {
+    console.log("Logging out...");
+    // Add navigation or auth clear logic here
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
+        
+        {/* Top Bar with Logo and Logout */}
+        <View style={styles.topBar}>
           <Image
-            source={{ uri: 'https://via.placeholder.com/100' }}
-            style={styles.profileImage}
+            source={require('../../../assets/images/logo.png')}
+            style={styles.logo}
           />
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Profile Section */}
+        <View style={styles.header}>
+          <ProfileImage />
           <Text style={styles.name}>John Doe</Text>
           <Text style={styles.email}>johndoe@example.com</Text>
         </View>
 
+        {/* Account Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Info</Text>
           <Text style={styles.infoItem}>Mobile: +91 9876543210</Text>
@@ -22,19 +53,28 @@ const ProfileScreen = () => {
           <Text style={styles.infoItem}>Gender: Male</Text>
         </View>
 
+        {/* Settings Buttons */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Edit Profile</Text>
+
+          <TouchableOpacity style={styles.buttonCard} onPress={() => setEditVisible(true)}>
+            <Text style={styles.buttonText}>✏️ Edit Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Change Password</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Log Out</Text>
+
+          <TouchableOpacity style={styles.buttonCard} onPress={() => setPasswordVisible(true)}>
+            <Text style={styles.buttonText}>🔒 Change Password</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modals */}
+      <Modal visible={editVisible} animationType="slide" transparent>
+        <EditProfileModal onClose={() => setEditVisible(false)} />
+      </Modal>
+
+      <Modal visible={passwordVisible} animationType="slide" transparent>
+        <ChangePasswordModal onClose={() => setPasswordVisible(false)} />
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -42,25 +82,41 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.greenbackground,
   },
   scrollContainer: {
     padding: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  logoutButton: {
+    backgroundColor: '#fdecea',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  logoutText: {
+    color: '#e74c3c',
+    fontSize: 14,
+    fontWeight: '600',
   },
   header: {
     alignItems: 'center',
     marginBottom: 30,
   },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
-  },
   name: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: colors.text,
+    color: colors.headerText1,
   },
   email: {
     fontSize: 14,
@@ -78,15 +134,23 @@ const styles = StyleSheet.create({
   infoItem: {
     fontSize: 14,
     color: colors.text,
-    marginBottom: 5,
+    marginBottom: 6,
   },
-  settingItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  buttonCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  settingText: {
+  buttonText: {
     fontSize: 16,
+    fontWeight: '500',
     color: colors.text,
   },
 });
