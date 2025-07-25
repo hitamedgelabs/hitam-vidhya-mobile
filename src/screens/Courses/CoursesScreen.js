@@ -7,16 +7,17 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import colors from '../../constants/Colors';
 import CourseCard from '../../components/CourseCard';
 import EmptyCourseList from '../../components/EmptyCourseView';
-import { TextInput } from 'react-native-gesture-handler';
+import Loader from '../../components/Loader';
 import axios from 'axios';
 
 const API_URL = 'https://api.hitamvidhya.com/api';
-
 
 const CoursesScreen = ({ onSelectCourse }) => {
   const [allCourses, setAllCourses] = useState([]);
@@ -29,7 +30,7 @@ const CoursesScreen = ({ onSelectCourse }) => {
     limit: 10,
     hasMore: true,
   });
-  
+
   const fetchCourses = async (page = 1, limit = 10, reset = false) => {
     setLoading(true);
     try {
@@ -56,12 +57,10 @@ const CoursesScreen = ({ onSelectCourse }) => {
     }
   };
 
-  // On mount or category change
   useEffect(() => {
     fetchCourses(1, pagination.limit, true);
   }, [category]);
 
-  // Search debounce
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchCourses(1, pagination.limit, true);
@@ -90,68 +89,74 @@ const CoursesScreen = ({ onSelectCourse }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require('../../../assets/images/logo.png')}
-          style={styles.logo}
-        />
-        {searchOpen ? (
-          <View style={styles.searchContainer}>
-            <TextInput
-              placeholder="Search courses..."
-              placeholderTextColor="#999"
-              style={styles.searchInput}
-              value={searchText}
-              onChangeText={setSearchText}
-            />
-            <TouchableOpacity onPress={() => setSearchOpen(false)}>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.titleRow}>
-            <Text style={styles.heading}>Our Courses</Text>
-            <TouchableOpacity onPress={() => setSearchOpen(true)}>
-              <Image
-                source={require('../../../assets/icons/search.png')}
-                style={styles.searchIcon}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={10}
+      >
+        <View style={styles.header}>
+          <Image
+            source={require('../../../assets/images/logo.png')}
+            style={styles.logo}
+          />
+          {searchOpen ? (
+            <View style={styles.searchContainer}>
+              <TextInput
+                placeholder="Search courses..."
+                placeholderTextColor="#999"
+                style={styles.searchInput}
+                value={searchText}
+                onChangeText={setSearchText}
               />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={{ flexDirection: 'row', alignSelf: 'flex-start' }}>
-          {[ 'IT', 'NON IT'].map((cat, index) => (
-            <TouchableOpacity key={index} style={{ alignItems: 'center', marginLeft: index !== 0 ? 10 : 0 }} onPress={() => handleTabChange(cat)}>
-              <Text style={[styles.categoryText, category === cat && { color: '#2c6f2cff' }]}>{cat}</Text>
-              {category === cat && <View style={styles.categoryLine} />}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.courseContainer}>
-        <FlatList
-          data={allCourses}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={() => <View style={{ height: 10 }} />}
-          ListFooterComponent={() =>
-            loading ? (
-              <ActivityIndicator size="small" color="#2c6f2cff" style={{ marginVertical: 20 }} />
-            ) : (
-              <View style={{ height: 100 }} />
-            )
-          }
-          ListEmptyComponent={() => !loading && <EmptyCourseList />}
-          renderItem={({ item }) => (
-            <CourseCard course={item} onPress={() => openCourse(item._id)} />
+              <TouchableOpacity onPress={() => setSearchOpen(false)}>
+                <Text style={styles.arrow}>›</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.titleRow}>
+              <Text style={styles.heading}>Our Courses</Text>
+              <TouchableOpacity onPress={() => setSearchOpen(true)}>
+                <Image
+                  source={require('../../../assets/icons/search.png')}
+                  style={styles.searchIcon}
+                />
+              </TouchableOpacity>
+            </View>
           )}
-          contentContainerStyle={styles.courseList}
-          onEndReached={loadMoreCourses}
-          onEndReachedThreshold={0.5}
-        />
-      </View>
+
+          <View style={{ flexDirection: 'row', alignSelf: 'flex-start' }}>
+            {['IT', 'NON IT'].map((cat, index) => (
+              <TouchableOpacity key={index} style={{ alignItems: 'center', marginLeft: index !== 0 ? 10 : 0 }} onPress={() => handleTabChange(cat)}>
+                <Text style={[styles.categoryText, category === cat && { color: '#2c6f2cff' }]}>{cat}</Text>
+                {category === cat && <View style={styles.categoryLine} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.courseContainer}>
+          <FlatList
+            data={allCourses}
+            keyExtractor={(item) => item._id}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={() => <View style={{ height: 10 }} />}
+            ListFooterComponent={() =>
+              loading ? (
+                <Loader message="Fetching courses..." />
+              ) : (
+                <View style={{ height: 100 }} />
+              )
+            }
+            ListEmptyComponent={() => !loading && <EmptyCourseList />}
+            renderItem={({ item }) => (
+              <CourseCard course={item} onPress={() => openCourse(item._id)} />
+            )}
+            contentContainerStyle={styles.courseList}
+            onEndReached={loadMoreCourses}
+            onEndReachedThreshold={0.5}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -214,23 +219,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#22223B',
   },
-  tabs: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    marginVertical: 10,
-  },
-  tab: {
-    marginHorizontal: 12,
-    alignItems: 'center',
-  },
   categoryText: {
     fontSize: 16,
     fontWeight: '600',
     marginHorizontal: 10,
     color: '#000',
-  },
-  activeCategory: {
-    color: '#2c6f2cff',
   },
   categoryLine: {
     width: '100%',

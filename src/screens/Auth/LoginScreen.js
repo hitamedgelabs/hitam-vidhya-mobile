@@ -18,24 +18,24 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
   const fieldValidation = () => {
-    if(email === '' && password === '') {
-      alert('Please enter your email and password');
-      return false;
-    }
+    let localError = false;
     if(email === '') {
-      alert('Please enter your email');
-      return false;
+      setEmailError('*Required Field');
+      localError = true;
     }
     if(password === '') {
-      alert('Please enter your password');
-      return false;
+      setPasswordError('*Required Field');
+      localError = true;
     }
-    if(!email.includes('@gmail.com')) {
-      alert('Please enter a valid email');
-      return false;
+    if(!email.includes('@gmail.com') && email !== '' ) {
+      setEmailError('Please enter a valid email');
+      localError = true;
     }
-    return true;
+    return !localError;
   }
 
   const handleLogin = () => {
@@ -63,11 +63,13 @@ const LoginScreen = ({ navigation }) => {
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
+            error={emailError}
           />
           <Input
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
+            error={passwordError}
           />
           <Button title="Login" onPress={handleLogin} />
           <View style={styles.newUserText}>

@@ -1,0 +1,71 @@
+import React, { useRef, useEffect } from 'react';
+import { View, Animated, StyleSheet, Text } from 'react-native';
+import colors from '../constants/Colors'; // optional: replace or hardcode
+
+const Loader = ({ message = 'Loading...' }) => {
+  const bounce1 = useRef(new Animated.Value(0)).current;
+  const bounce2 = useRef(new Animated.Value(0)).current;
+  const bounce3 = useRef(new Animated.Value(0)).current;
+
+  const animateDot = (dot, delay) => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dot, {
+          toValue: -10,
+          duration: 300,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  useEffect(() => {
+    animateDot(bounce1, 0);
+    animateDot(bounce2, 150);
+    animateDot(bounce3, 300);
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.dotsContainer}>
+        <Animated.View style={[styles.dot, { transform: [{ translateY: bounce1 }] }]} />
+        <Animated.View style={[styles.dot, { transform: [{ translateY: bounce2 }] }]} />
+        <Animated.View style={[styles.dot, { transform: [{ translateY: bounce3 }] }]} />
+      </View>
+      <Text style={styles.message}>{message}</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    height: 500,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary || '#2c6f2c',
+    marginHorizontal: 6,
+  },
+  message: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+});
+
+export default Loader;

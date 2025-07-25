@@ -10,26 +10,40 @@ import {
 } from 'react-native';
 import colors from '../../constants/Colors';
 import axios from 'axios';
+import Loader from '../../components/Loader'; // Make sure this file exists
 
 const API_URL = 'https://api.hitamvidhya.com/api';
 
 const CourseDetailScreen = ({ courseId }) => {
   const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchCourses = async () => {
     try {
       const response = await axios.get(`${API_URL}/courses/${courseId}`);
-      setCourse(response.data);
-      console.log('Course fetched:', response.data.data);
+      setCourse(response.data || null);
+      console.log('Course fetched:', response.data);
     } catch (error) {
       console.error('Error fetching course:', error);
       setCourse(null);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  const handleEnroll = () => {
+    Alert.alert('Enrolled!', 'You have successfully enrolled in the course.');
+  };
+
+  if (loading) {
+    return <View style={styles.centered}>
+      <Loader message="Loading course details..." />
+    </View>;
+  }
 
   if (!course) {
     return (
@@ -39,10 +53,6 @@ const CourseDetailScreen = ({ courseId }) => {
     );
   }
 
-  const handleEnroll = () => {
-    Alert.alert('Enrolled!', 'You have successfully enrolled in the course.');
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.logoBox}>
@@ -51,7 +61,12 @@ const CourseDetailScreen = ({ courseId }) => {
           style={styles.logo}
         />
       </View>
-      <Image source={{ uri: course.template_image }} style={styles.image} />
+
+      <Image
+        source={{ uri: course.template_image || 'https://via.placeholder.com/300x200' }}
+        style={styles.image}
+      />
+
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.content}>
           <Text style={styles.title}>{course.name}</Text>
@@ -79,7 +94,7 @@ const CourseDetailScreen = ({ courseId }) => {
 
           <View style={styles.priceBox}>
             <Text style={styles.priceText}>
-              ₹{course.fees.toLocaleString()}
+              ₹{(course.fees || 0).toLocaleString()}
             </Text>
             <Text style={styles.discountText}>Save {course.discount}%</Text>
           </View>
@@ -185,6 +200,7 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
+    backgroundColor: colors.greenbackground,
     justifyContent: 'center',
     alignItems: 'center',
   },

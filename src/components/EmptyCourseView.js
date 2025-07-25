@@ -1,7 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Text, View, Image } from 'react-native';
 
 const EmptyCourseList = ({ }) => {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShow(true);
+    }, 3000); // 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup on unmount
+  }, []);
+
+  if (!show) return null;
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
       <Image

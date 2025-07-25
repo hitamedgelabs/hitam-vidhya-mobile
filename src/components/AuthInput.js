@@ -1,50 +1,50 @@
-import React, {useState} from 'react';
-import { TextInput, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { TextInput, StyleSheet, View, TouchableOpacity, Image, Text } from 'react-native';
 import colors from '../constants/Colors';
 
-const Input = ({ placeholder, ...rest }) => {
+const Input = ({ placeholder, error, ...rest }) => {
   const [secure, setSecure] = useState(true);
 
-  if(placeholder === "Mobile")
-    return (
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
-        {...rest}
-        keyboardType='phone-pad'
-      />);
-  else if(placeholder.includes("Password"))
-    return (
-      <View style={[styles.input, {paddingLeft: 12}]}>
-        <TextInput
-          style={{ flex: 1, color: 'black' }}
-          placeholder={placeholder}
-          placeholderTextColor={colors.placeholder}
-          {...rest}
-          secureTextEntry={secure}
-        />
-        <TouchableOpacity style={styles.icon} onPress={() => setSecure(!secure)}>
-          <Image
-            source={secure ? require('../../assets/icons/eye-close.png') : require('../../assets/icons/eye-open.png')}
-            style={styles.icon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+  const renderTextInput = () => (
+    <TextInput
+      style={[styles.inputField, { flex: 1 }]}
+      placeholder={placeholder}
+      placeholderTextColor={colors.placeholder}
+      {...rest}
+      secureTextEntry={placeholder.includes("Password") && secure}
+      keyboardType={placeholder === "Mobile" ? 'phone-pad' : 'default'}
+    />
+  );
+
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <View style={styles.inputContainer}>
+        {placeholder.includes("Password") ? (
+          <>
+            {renderTextInput()}
+            <TouchableOpacity onPress={() => setSecure(!secure)}>
+              <Image
+                source={
+                  secure
+                    ? require('../../assets/icons/eye-close.png')
+                    : require('../../assets/icons/eye-open.png')
+                }
+                style={styles.icon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </>
+        ) : (
+          renderTextInput()
+        )}
       </View>
-    );
-  else
-    return (
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
-        {...rest}
-      />);
+      {error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  input: {
+  inputContainer: {
     height: 50,
     backgroundColor: colors.inputBackground,
     borderRadius: 10,
@@ -52,12 +52,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 15,
+  },
+  inputField: {
+    color: 'black',
   },
   icon: {
     width: 24,
     height: 24,
-  }
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 10,
+  },
 });
 
 export default Input;
