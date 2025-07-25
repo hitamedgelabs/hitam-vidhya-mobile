@@ -17,7 +17,7 @@ import EmptyCourseList from '../../components/EmptyCourseView';
 import Loader from '../../components/Loader';
 import axios from 'axios';
 
-const API_URL = 'https://api.hitamvidhya.com/api';
+const API_URL = 'http://10.0.2.2:8000/api';
 
 const CoursesScreen = ({ onSelectCourse }) => {
   const [allCourses, setAllCourses] = useState([]);

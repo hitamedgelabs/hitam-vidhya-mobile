@@ -6,36 +6,19 @@ import {
   SafeAreaView,
   Image,
   FlatList,
-  ScrollView,
 } from 'react-native';
 import colors from '../../constants/Colors';
 import CourseCard from '../../components/CourseCard';
 import CourseData from '../../../course.json'; // Assuming you have a CourseData file
+import EmptyCourseList from '../../components/EmptyCourseView';
 
-const EmptyCourseList = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-      <Image
-        source={require('../../../assets/images/not_available.png')}
-        style={{ height: 120, marginBottom: 20, opacity: 0.7, resizeMode: 'contain' }}
-      />
-      <Text style={{ fontSize: 18, fontWeight: '600', color: '#444', marginBottom: 8 }}>
-        No Courses Found
-      </Text>
-      <Text style={{ fontSize: 14, color: '#888', textAlign: 'center' }}>
-        It looks like there are no courses You are Enrolled now.{"\n"}Please Enroll in any of our Courses.
-      </Text>
-    </View>
-  );
-}
 const CoursesScreen = () => {
   const [myCourse, setMyCourses] = useState([]);
   useEffect(() => {
     setMyCourses(CourseData);
-    }, []);
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Image
           source={require('../../../assets/images/logo.png')}

@@ -1,0 +1,45 @@
+{
+  "studentId": "64f19876abcd5678ef902345",
+  "name": "John Doe",
+  "gender": "Male",
+  "email": "johndoe@gmail.com",
+  "mobile": "9876543210",
+  "alternateMobile": "9123456780",
+  "dob": "2002-08-15T00:00:00.000Z",
+  "profilePicture": "https://example.com/uploads/john-profile.png",
+  "linkedinProfile": "https://linkedin.com/in/johndoe",
+  "twitterProfile": "https://twitter.com/johndoe",
+  "instagramProfile": "https://instagram.com/johndoe",
+  "address": {
+    "current": "123 Street, City Center, New Delhi",
+    "hometown": "Village XYZ, District ABC, Rajasthan"
+  },
+  "educationDetails": {
+    "tenth": {
+      "institutionName": "ABC High School",
+      "board": "CBSE",
+      "percentage": "89.5"
+    },
+    "twelfth": {
+      "institutionName": "XYZ Senior Secondary School",
+      "board": "CBSE",
+      "percentage": "91.2"
+    },
+    "bachelors": {
+      "institutionName": "National Institute of Technology",
+      "courseName": "B.Tech in Computer Science",
+      "cgpa": "8.6"
+    }
+  },
+  "parentDetails": {
+    "name": "Mr. David Doe",
+    "relation": "Father",
+    "mobile": "9876501234",
+    "email": "david.doe@example.com",
+    "occupation": "Government Employee",
+    "address": "123 Street, City Center, New Delhi"
+  },
+  "password": "12345678",
+  "courseEnrolled": ["64d1234abc1234567890abcd", "64d5678def4567890123defg"],
+  "joinedAt": "2025-07-25T08:00:00.000Z"
+}

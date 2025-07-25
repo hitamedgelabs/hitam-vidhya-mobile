@@ -9,20 +9,26 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  BackHandler
+  BackHandler,
+  Modal
 } from 'react-native';
 import Input from '../../components/AuthInput';
 import Button from '../../components/AuthButton';
 import colors from '../../constants/Colors';
 import SelectInput from '../../components/Spinner';
 import Calender from '../../components/Calender';
+import OTPVerification from '../../components/OtpVerification';
 import { validateSignupStep } from '../../utils/validateSignupStep';
 import { validatePassword } from '../../utils/passwordValidator';
 import { Alert } from 'react-native';
 
+const API_URL = 'https://api.hitamvidhya.com/api';
+
 const SignupScreen = ({ navigation }) => {
   const [step, setStep] = useState(1); // ⬅️ Multi-step tracker
   const [errors, setErrors] = useState({});
+  const [otpVerification, setOtpVerification] = useState(false);
+  const [verifiedToken, setVerifiedToken] = useState(null);
 
   useEffect(() => {
     const backAction = () => {
@@ -94,7 +100,7 @@ const SignupScreen = ({ navigation }) => {
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   }
   
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     const studentData = {
       name: form.name,
       gender: form.gender,
@@ -141,6 +147,16 @@ const SignupScreen = ({ navigation }) => {
     };
     // signup logic here
 
+    try {
+    const res = await axios.post(`${API_URL}/auth/register`, { ...studentData });
+    if (res.data.success) {
+      setOtpVerification(true);
+    } else {
+      Alert.alert('Error', res.data.message);
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Registration failed');
+  }
     navigation.navigate("ApplicationMain");
   };
 
@@ -206,10 +222,11 @@ const SignupScreen = ({ navigation }) => {
       <Input placeholder="Address" value={form.parentAddress} onChangeText={(v) => handleChange('parentAddress', v)} error={errors.parentAddress} />
     </>
   );
-
+  
   const changeStep = (newStep) => {
     const { valid, newErrors } = validateSignupStep(step, form);
     let localError = false; // use local flag instead of useState
+
     if (!valid) {
       setErrors(newErrors);
       localError = true;
@@ -286,6 +303,18 @@ const SignupScreen = ({ navigation }) => {
             <Button title="Sign Up" onPress={handleSignUp} />
           }
         </ScrollView>
+        <Modal visible={otpVerification} animationType="slide" transparent>
+          <OTPVerification
+            visible={otpVerification}
+            email={form.email}
+            onClose={() => setOtpVerification(false)}
+            onVerified={(token) => {
+              setVerifiedToken(token);      // store token if needed
+              setOtpVerification(false);    // close modal
+              navigation.navigate("ApplicationMain"); // proceed
+            }}
+          />
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
