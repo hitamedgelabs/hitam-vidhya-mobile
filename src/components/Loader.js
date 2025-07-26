@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, Animated, StyleSheet, Text } from 'react-native';
 import colors from '../constants/Colors'; // optional: replace or hardcode
 
-const Loader = ({ message = 'Loading...' }) => {
+const Loader = ({ message = '' }) => {
   const bounce1 = useRef(new Animated.Value(0)).current;
   const bounce2 = useRef(new Animated.Value(0)).current;
   const bounce3 = useRef(new Animated.Value(0)).current;
@@ -38,21 +38,22 @@ const Loader = ({ message = 'Loading...' }) => {
         <Animated.View style={[styles.dot, { transform: [{ translateY: bounce2 }] }]} />
         <Animated.View style={[styles.dot, { transform: [{ translateY: bounce3 }] }]} />
       </View>
-      <Text style={styles.message}>{message}</Text>
+      {message !== '' && (
+        <Text style={styles.message}>{message}</Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: 500,
     justifyContent: 'center',
     alignItems: 'center',
+    height: 50,
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 12,
   },
   dot: {
     width: 12,

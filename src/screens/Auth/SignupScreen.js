@@ -20,15 +20,17 @@ import Calender from '../../components/Calender';
 import OTPVerification from '../../components/OtpVerification';
 import { validateSignupStep } from '../../utils/validateSignupStep';
 import { validatePassword } from '../../utils/passwordValidator';
+import axios from 'axios';
+import Loader from '../../components/Loader';
 import { Alert } from 'react-native';
 
-const API_URL = 'https://api.hitamvidhya.com/api';
+const API_URL = 'http://10.0.2.2:8000/api';
 
 const SignupScreen = ({ navigation }) => {
   const [step, setStep] = useState(1); // ⬅️ Multi-step tracker
   const [errors, setErrors] = useState({});
   const [otpVerification, setOtpVerification] = useState(false);
-  const [verifiedToken, setVerifiedToken] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const backAction = () => {
@@ -101,17 +103,18 @@ const SignupScreen = ({ navigation }) => {
   }
   
   const handleSignUp = async () => {
+    setLoading(true);
     const studentData = {
       name: form.name,
       gender: form.gender,
       email: form.email,
       mobile: form.mobile,
-      alternateMobile: form.alternateMobile,
+      alternateMobile: form.alternateMobile || undefined,
       dob: form.dob,
-      profilePicture: form.profilePicture,
-      linkedinProfile: form.linkedinProfile,
-      twitterProfile: form.twitterProfile,
-      instagramProfile: form.instagramProfile,
+      profilePicture: form.profilePicture || "default-profile.png",
+      linkedinProfile: form.linkedinProfile?.trim() || undefined,
+      twitterProfile: form.twitterProfile?.trim() || undefined,
+      instagramProfile: form.instagramProfile?.trim() || undefined,
       address: {
         current: form.addressCurrent,
         hometown: form.addressHometown,
@@ -143,21 +146,24 @@ const SignupScreen = ({ navigation }) => {
       },
       password: form.password,
       courseEnrolled: [],
-      joinedAt: today(),
+      joinedAt: today(), // OR omit this field — your backend sets default
     };
-    // signup logic here
 
     try {
-    const res = await axios.post(`${API_URL}/auth/register`, { ...studentData });
-    if (res.data.success) {
-      setOtpVerification(true);
-    } else {
-      Alert.alert('Error', res.data.message);
+      const res = await axios.post(`${API_URL}/auth/register`, studentData);
+      if (res.data.success) {
+        setOtpVerification(true); // show OTP modal/screen
+      } else {
+        Alert.alert("Signup Error", res.data.message);
+      }
+    } catch (err) {
+      console.error("Signup error:", err?.response?.data || err.message);
+      Alert.alert(
+        "Signup Failed",
+        err?.response?.data?.message || err.message || "Server error"
+      );
     }
-  } catch (err) {
-    Alert.alert('Error', 'Registration failed');
-  }
-    navigation.navigate("ApplicationMain");
+    setLoading(false);
   };
 
 
@@ -185,6 +191,7 @@ const SignupScreen = ({ navigation }) => {
       <Input placeholder="Alternate Mobile" value={form.alternateMobile} onChangeText={(v) => handleChange('alternateMobile', v)} />
     
       <Calender value={form.dob} onChange={(v) => handleChange('dob', v)} error={errors.dob}/>
+      <Input placeholder="Linked Profile" value={form.linkedinProfile} onChangeText={(v) => handleChange('linkedinProfile', v)} />
       <Input placeholder="Twitter Profile" value={form.twitterProfile} onChangeText={(v) => handleChange('twitterProfile', v)} />
       <Input placeholder="Instagram Profile" value={form.instagramProfile} onChangeText={(v) => handleChange('instagramProfile', v)} />
       <Input placeholder="Current Address" value={form.addressCurrent} onChangeText={(v) => handleChange('addressCurrent', v)} error={errors.addressCurrent} />
@@ -240,7 +247,7 @@ const SignupScreen = ({ navigation }) => {
       // Password validation
       const { valid: passwordValid, errors: passwordErrors } = validatePassword(form.password, confirmPassword);
       if (!passwordValid) {
-        setErrors((prev) => ({ ...prev, password: passwordErrors }));
+        // setErrors((prev) => ({ ...prev, password: passwordErrors }));
         setTimeout(() => {
           Alert.alert("Password Error", passwordErrors);
         }, 0);
@@ -309,12 +316,16 @@ const SignupScreen = ({ navigation }) => {
             email={form.email}
             onClose={() => setOtpVerification(false)}
             onVerified={(token) => {
-              setVerifiedToken(token);      // store token if needed
               setOtpVerification(false);    // close modal
               navigation.navigate("ApplicationMain"); // proceed
             }}
           />
         </Modal>
+        {
+          loading && <View style = {styles.loaderContainer}>
+            <Loader message='Loading...'/>
+          </View>
+        }
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -375,6 +386,15 @@ const styles = StyleSheet.create({
     borderColor: colors.darkGreen,
     backgroundColor: 'transparent',
   },
+  loaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 
 });
 

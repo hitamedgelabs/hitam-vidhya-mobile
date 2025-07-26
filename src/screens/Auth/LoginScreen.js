@@ -8,18 +8,28 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Modal
 } from 'react-native';
 import Input from '../../components/AuthInput';
 import Button from '../../components/AuthButton';
+import OTPVerification from '../../components/OtpVerification';
+import Loader from '../../components/Loader';
 import colors from '../../constants/Colors';
+import { Alert } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_URL = 'http://10.0.2.2:8000/api';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [verifiedToken, setVerifiedToken] = useState(null);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [otpVerification, setOtpVerification] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fieldValidation = () => {
     let localError = false;
@@ -38,11 +48,45 @@ const LoginScreen = ({ navigation }) => {
     return !localError;
   }
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setLoading(true);
     const canProceed = fieldValidation();
     if (!canProceed) return;
     console.log('Login pressed', email, password);
-    navigation.navigate("ApplicationMain");
+    
+    try {
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+      if (res.data.success) {
+        // onSuccess(res.data.data); // Pass token, student object etc.
+        const token = res.data.data.token;
+        // ✅ Save token securely
+        await AsyncStorage.setItem('authToken', token);
+        Alert.alert('Login Successful', `Welcome ${res.data.data.students.name}`);
+        navigation.navigate("ApplicationMain");
+      } else {
+        Alert.alert('Login Failed', res.data.message);
+      }
+    } catch (err) {
+      console.error('Login error:', err?.response?.data || err.message);
+      if (err?.response?.data?.message === "Please verify your email first") {
+        try {
+          const otpRes = await axios.post(`${API_URL}/auth/resend-otp`, { email });
+          if (otpRes.data.success) {
+            Alert.alert('Email Verification Required', 'Please verify your email before logging in.');
+          } else {
+            Alert.alert('Error', otpRes.data.message || 'Failed to send OTP');
+          }
+        } catch (otpErr) {
+          console.error('OTP resend error:', otpErr?.response?.data || otpErr.message);
+          Alert.alert('Error', otpErr?.response?.data?.message || 'Failed to resend OTP');
+        }
+        setOtpVerification(true);
+        setLoading(false);
+        return;
+      }
+      Alert.alert('Error', err?.response?.data?.message || 'Server error during login');
+    }
+    setLoading(false);
   };
 
   return (
@@ -81,6 +125,21 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        <Modal visible={otpVerification} animationType="slide" transparent>
+          <OTPVerification
+            visible={otpVerification}
+            email={email}
+            onClose={() => {setOtpVerification(false); setLoading(false);}}
+            onVerified={(token) => {
+              setVerifiedToken(token);      // store token if needed
+              setOtpVerification(false);   // close modal
+              navigation.navigate("ApplicationMain"); // proceed
+            }}
+          />
+        </Modal>
+        {loading && <View style={styles.loaderContainer}>
+          <Loader message="Logging in..." />
+        </View>}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -116,6 +175,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'flex-end',
     borderRadius: 5,
+  },
+  loaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(167, 161, 161, 0.69)', // semi-transparent background
   },
 });
 
