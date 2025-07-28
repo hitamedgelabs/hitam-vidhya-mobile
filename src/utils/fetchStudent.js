@@ -28,7 +28,11 @@ export const fetchStudentData = async () => {
     if(err?.response?.data.code === "TOKEN_EXPIRED") {
         Alert.alert("Alert", "Session Expired. Logged out.");
         return "TOKEN_EXPIRED";
+    } else if(err?.response?.data.code === "STUDENT_NOT_FOUND") {
+        Alert.alert("Alert", "Please Verify Your Account.");
+        return "STUDENT_NOT_FOUND";
     }
+
     console.error("Fetch student error:", err?.response?.data || err.message);
     Alert.alert("Error", err?.response?.data?.message || "Server error");
     return null;

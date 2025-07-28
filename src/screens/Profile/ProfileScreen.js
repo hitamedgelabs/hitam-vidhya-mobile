@@ -47,8 +47,9 @@ const ProfileScreen = ({navigation}) => {
     const loadStudent = async () => {
       setLoading1(true);
       const studentData = await fetchStudentData();
-      if(studentData === "TOKEN_EXPIRED"){
-        handleLogout
+      if(studentData === "TOKEN_EXPIRED" || studentData === "STUDENT_NOT_FOUND"){
+        await handleLogout();
+        return;
       }
       if (studentData) {
         setStudent(studentData);
