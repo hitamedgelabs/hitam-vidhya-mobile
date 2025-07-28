@@ -35,20 +35,30 @@ const ProfileScreen = ({navigation}) => {
     setLoading(false);
   };
 
-  const [student, setStudent] = useState()
+  const [student, setStudent] = useState([])
   
   useEffect(() => {
     const loadStudent = async () => {
       setLoading1(true);
       const studentData = await fetchStudentData();
+      if(studentData === "TOKEN_EXPIRED"){
+        handleLogout();
+      }
       if (studentData) {
         setStudent(studentData);
         console.log('Student Profile:', studentData);
       }
       setLoading1(false);
     };
+    console.log(student);
     loadStudent();
   }, []);
+
+  if(!student) {
+    return <View style = {styles.loadingContainer}>
+      <Loader message='Loading...'/>
+    </View>
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,16 +78,16 @@ const ProfileScreen = ({navigation}) => {
         {/* Profile Section */}
         <View style={styles.header}>
           <ProfileImage />
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.email}>johndoe@example.com</Text>
+          <Text style={styles.name}>{student.name}</Text>
+          <Text style={styles.email}>{student.email}</Text>
         </View>
 
         {/* Account Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Info</Text>
-          <Text style={styles.infoItem}>Mobile: +91 9876543210</Text>
-          <Text style={styles.infoItem}>DOB: 15/08/2000</Text>
-          <Text style={styles.infoItem}>Gender: Male</Text>
+          <Text style={styles.infoItem}>Mobile: {student.mobile}</Text>
+          <Text style={styles.infoItem}>DOB: {student.dob}</Text>
+          <Text style={styles.infoItem}>Gender: {student.gender}</Text>
         </View>
 
         {/* Settings Buttons */}

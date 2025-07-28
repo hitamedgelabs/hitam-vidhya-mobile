@@ -15,6 +15,7 @@ import Input from '../../components/AuthInput';
 import Button from '../../components/AuthButton';
 import OTPVerification from '../../components/OtpVerification';
 import Loader from '../../components/Loader';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 import colors from '../../constants/Colors';
 import { Alert } from 'react-native';
 import axios from 'axios';
@@ -30,6 +31,7 @@ const LoginScreen = ({ navigation }) => {
   const [passwordError, setPasswordError] = useState('');
   const [otpVerification, setOtpVerification] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [forgotVisible, setForgotVisible] = useState(false);
 
   const fieldValidation = () => {
     let localError = false;
@@ -46,10 +48,6 @@ const LoginScreen = ({ navigation }) => {
       localError = true;
     }
     return !localError;
-  }
-
-  const handleForgot = () => {
-
   }
 
   const handleLogin = async () => {
@@ -125,9 +123,9 @@ const LoginScreen = ({ navigation }) => {
             onChangeText={setPassword}
             error={passwordError}
           />
-          <TouchableOpacity onPress={() => {handleForgot}}>
-              <Text style={{ color: colors.darkGreen }}>Forgot Password?</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => setForgotVisible(true)}>
+            <Text style={{ color: colors.darkGreen }}>Forgot Password?</Text>
+          </TouchableOpacity>
           <Button title="Login" onPress={handleLogin} />
           <View style={styles.newUserText}>
             <Text style={{ color: colors.text, textAlign: 'center' }}>
@@ -150,6 +148,14 @@ const LoginScreen = ({ navigation }) => {
             }}
           />
         </Modal>
+        <ForgotPasswordModal
+  visible={forgotVisible}
+  onClose={() => setForgotVisible(false)}
+  onSuccess={() => {
+    Alert.alert('Password changed', 'You can now login with your new password');
+  }}
+/>
+
         {loading && <View style={styles.loaderContainer}>
           <Loader message="Logging in..." />
         </View>}
