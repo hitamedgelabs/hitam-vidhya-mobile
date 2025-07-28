@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,15 +13,42 @@ import colors from '../../constants/Colors';
 import EditProfileModal from '../../components/EditProfileModal';
 import ChangePasswordModal from '../../components/ChangePasswordModal';
 import ProfileImage from '../../components/ProfileImage';
+import Loader from '../../components/Loader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchStudentData } from '../../utils/fetchStudent';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({navigation}) => {
   const [editVisible, setEditVisible] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loading1, setLoading1] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    setLoading(true);
     console.log("Logging out...");
-    // Add navigation or auth clear logic here
+    try {
+      await AsyncStorage.removeItem('authToken');
+      navigation.replace('LoginPages');
+    } catch (error) {
+      console.error("Error removing auth token during logout:", error);
+    }
+    setLoading(false);
   };
+
+  const [student, setStudent] = useState()
+  
+  useEffect(() => {
+    const loadStudent = async () => {
+      setLoading1(true);
+      const studentData = await fetchStudentData();
+      if (studentData) {
+        setStudent(studentData);
+        console.log('Student Profile:', studentData);
+      }
+      setLoading1(false);
+    };
+    loadStudent();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -75,6 +102,16 @@ const ProfileScreen = () => {
       <Modal visible={passwordVisible} animationType="slide" transparent>
         <ChangePasswordModal onClose={() => setPasswordVisible(false)} />
       </Modal>
+      { loading && (
+        <View style = {styles.loadingContainer}>
+          <Loader message='Logging out...'/>
+        </View>)
+      }
+      { loading1 && (
+        <View style = {[styles.loadingContainer, {backgroundColor:  '#f7ffd8ff'}]}>
+          <Loader message='Loading...'/>
+        </View>)
+      }
     </SafeAreaView>
   );
 };
@@ -103,6 +140,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
+    elevation: 3
   },
   logoutText: {
     color: '#e74c3c',
@@ -153,6 +191,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.text,
   },
+  loadingContainer: {
+    position: 'absolute',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
 
 export default ProfileScreen;

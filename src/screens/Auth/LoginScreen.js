@@ -48,46 +48,56 @@ const LoginScreen = ({ navigation }) => {
     return !localError;
   }
 
+  const handleForgot = () => {
+
+  }
+
   const handleLogin = async () => {
     setLoading(true);
     const canProceed = fieldValidation();
-    if (!canProceed) return;
+    if (!canProceed) {
+      setLoading(false);
+      return;
+    }
     console.log('Login pressed', email, password);
-    
     try {
-      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
-      if (res.data.success) {
-        // onSuccess(res.data.data); // Pass token, student object etc.
-        const token = res.data.data.token;
-        // ✅ Save token securely
+      const res = await axios.post(`${API_URL}/student/login`, { email, password });
+
+      if (res?.data?.success) {
+        const token = res.data.data.token; // ✅ Fix: correct token path
+        const studentName = res.data.data.students.name;
+
         await AsyncStorage.setItem('authToken', token);
-        Alert.alert('Login Successful', `Welcome ${res.data.data.students.name}`);
+        Alert.alert('Login Successful', `Welcome ${studentName}`);
         navigation.navigate("ApplicationMain");
-      } else {
-        Alert.alert('Login Failed', res.data.message);
+        return;
       }
+      // Handles any failed login (other than exception)
+      Alert.alert('Login Failed', res?.data?.message || 'Invalid credentials');
     } catch (err) {
       console.error('Login error:', err?.response?.data || err.message);
-      if (err?.response?.data?.message === "Please verify your email first") {
+      const errorCode = err?.response?.data?.code;
+      if (errorCode === "EMAIL_NOT_VERIFIED") {
         try {
-          const otpRes = await axios.post(`${API_URL}/auth/resend-otp`, { email });
-          if (otpRes.data.success) {
+          const otpRes = await axios.post(`${API_URL}/student/resend-otp`, { email });
+          if (otpRes?.data?.success) {
             Alert.alert('Email Verification Required', 'Please verify your email before logging in.');
           } else {
-            Alert.alert('Error', otpRes.data.message || 'Failed to send OTP');
+            Alert.alert('Error', otpRes?.data?.message || 'Failed to send OTP');
           }
+          setOtpVerification(true);
         } catch (otpErr) {
           console.error('OTP resend error:', otpErr?.response?.data || otpErr.message);
           Alert.alert('Error', otpErr?.response?.data?.message || 'Failed to resend OTP');
         }
-        setOtpVerification(true);
-        setLoading(false);
         return;
       }
       Alert.alert('Error', err?.response?.data?.message || 'Server error during login');
+    } finally {
+      setLoading(false); // ✅ ensures spinner is always reset
     }
-    setLoading(false);
   };
+
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -115,6 +125,9 @@ const LoginScreen = ({ navigation }) => {
             onChangeText={setPassword}
             error={passwordError}
           />
+          <TouchableOpacity onPress={() => {handleForgot}}>
+              <Text style={{ color: colors.darkGreen }}>Forgot Password?</Text>
+            </TouchableOpacity>
           <Button title="Login" onPress={handleLogin} />
           <View style={styles.newUserText}>
             <Text style={{ color: colors.text, textAlign: 'center' }}>

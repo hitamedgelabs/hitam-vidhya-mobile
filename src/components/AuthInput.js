@@ -68,6 +68,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
 
 const styles = StyleSheet.create({
   inputWrapper: {
+    width: '100%',
     height: 50,
     backgroundColor: colors.inputBackground,
     borderRadius: 10,

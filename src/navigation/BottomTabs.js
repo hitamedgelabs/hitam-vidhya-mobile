@@ -6,7 +6,7 @@ import Courses from '../screens/Courses/CoursesScreen';
 import Profile from '../screens/Profile/ProfileScreen';
 import CourseDetailScreen from '../screens/Courses/CourseDetailScreen'; // ✅ import this
 
-const BottomTabs = () => {
+const BottomTabs = ({navigation}) => {
   const [activePage, setActivePage] = useState('Dashboard');
   const [courseId, setCourseId] = useState('');
 
@@ -20,7 +20,7 @@ const BottomTabs = () => {
       case 'Courses':
         return <Courses onSelectCourse={(id) => setCourseId(id)} />;
       case 'Profile':
-        return <Profile />;
+        return <Profile navigation = {navigation}/>;
       default:
         return null;
     }

@@ -150,7 +150,7 @@ const SignupScreen = ({ navigation }) => {
     };
 
     try {
-      const res = await axios.post(`${API_URL}/auth/register`, studentData);
+      const res = await axios.post(`${API_URL}/student/register`, studentData);
       if (res.data.success) {
         setOtpVerification(true); // show OTP modal/screen
       } else {

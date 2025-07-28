@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://10.0.2.2:8000/api';
 
-const OTPVerification = ({ visible, email, onClose }) => {
+const OTPVerification = ({ visible, email, onClose, onVerified }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
@@ -39,13 +39,15 @@ const OTPVerification = ({ visible, email, onClose }) => {
     }
     try {
       setLoading(true);
-      const res = await axios.post(`${API_URL}/auth/verify-otp`, { email, otp });
+      const res = await axios.post(`${API_URL}/student/verify-otp`, { email, otp });
 
       if (res.data.success) {
         const token = res.data.data.token;
         // ✅ Save token securely
+        console.log(res);
         await AsyncStorage.setItem('authToken', token);
         Alert.alert('Success', 'Email verified successfully');
+        onVerified(token);
       } else {
         Alert.alert('Error', res.data.message || 'Verification failed');
       }
@@ -61,7 +63,7 @@ const OTPVerification = ({ visible, email, onClose }) => {
     try {
       setCanResend(false);
       setResendTimer(60);
-      const res = await axios.post(`${API_URL}/auth/resend-otp`, { email });
+      const res = await axios.post(`${API_URL}/student/resend-otp`, { email });
       if (!res.data.success) {
         Alert.alert('Error', res.data.message || 'Failed to resend OTP');
       }
