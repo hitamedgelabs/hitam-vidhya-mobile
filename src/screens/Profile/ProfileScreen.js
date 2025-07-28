@@ -34,15 +34,21 @@ const ProfileScreen = ({navigation}) => {
     }
     setLoading(false);
   };
-
-  const [student, setStudent] = useState([])
+  const formatDOB = (isoString) => {
+    const d = new Date(isoString);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+  const [student, setStudent] = useState([]);
   
   useEffect(() => {
     const loadStudent = async () => {
       setLoading1(true);
       const studentData = await fetchStudentData();
       if(studentData === "TOKEN_EXPIRED"){
-        handleLogout();
+        handleLogout
       }
       if (studentData) {
         setStudent(studentData);
@@ -86,7 +92,7 @@ const ProfileScreen = ({navigation}) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Info</Text>
           <Text style={styles.infoItem}>Mobile: {student.mobile}</Text>
-          <Text style={styles.infoItem}>DOB: {student.dob}</Text>
+          <Text style={styles.infoItem}>DOB: {formatDOB(student.dob)}</Text>
           <Text style={styles.infoItem}>Gender: {student.gender}</Text>
         </View>
 
@@ -210,6 +216,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f7ffd8ff',
   }
 });
 
