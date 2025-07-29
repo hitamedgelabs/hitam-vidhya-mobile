@@ -11,8 +11,9 @@ import Button from '../components/AuthButton';
 import axios from 'axios';
 import Loader from './Loader';  
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://10.0.2.2:8000/api';
+import config from '../config/api';
+ 
+const API_URL = config.API_URL;
 
 const OTPVerification = ({ visible, email, onClose, onVerified }) => {
   const [otp, setOtp] = useState('');

@@ -13,8 +13,9 @@ import Loader from './Loader';
 import Input from './AuthInput';
 import Button from './AuthButton';
 import { validatePassword } from '../utils/passwordValidator';
-
-const API_URL = 'http://10.0.2.2:8000/api';
+import config from '../config/api';
+ 
+const API_URL = config.API_URL;
 
 const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
   const [step, setStep] = useState(1); // 1: email, 2: otp + new password

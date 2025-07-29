@@ -16,35 +16,6 @@ const API_URL = 'http://10.0.2.2:8000/api';
 const AppStack = () => {
   const [initialRoute, setInitialRoute] = useState(null); // null means loading
 
-  // useEffect(() => {
-  //   const checkStudentToken = async () => {
-  //     try {
-  //       const token = await AsyncStorage.getItem('authToken');
-
-  //       if (!token) {
-  //         return setInitialRoute('LoginPages');
-  //       }
-
-  //       const response = await axios.get(`${API_URL}/auth/student`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`
-  //         }
-  //       });
-
-  //       if (response.data.success && response.data.student) {
-  //         setInitialRoute('ApplicationMain')
-  //       } else {
-  //         setInitialRoute('LoginPages');
-  //       }
-  //     } catch (err) {
-  //       console.log('Auth Error:', err?.response?.data || err.message);
-  //       setInitialRoute('LoginPages');
-  //     }
-  //   };
-
-  //   checkStudentToken();
-  // }, []);
-
   useEffect(() => {
     const checkAuth = async () => {
       try {

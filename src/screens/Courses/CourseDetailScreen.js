@@ -11,8 +11,9 @@ import {
 import colors from '../../constants/Colors';
 import axios from 'axios';
 import Loader from '../../components/Loader'; // Make sure this file exists
-
-const API_URL = 'https://api.hitamvidhya.com/api';
+import config from '../../config/api';
+ 
+const API_URL = config.API_URL;
 
 const CourseDetailScreen = ({ courseId }) => {
   const [course, setCourse] = useState(null);

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Alert } from 'react-native';
-
-const API_URL = 'http://10.0.2.2:8000/api';
+import  config  from '../config/api';
+ 
+const API_URL = config.API_URL;
 
 export const fetchStudentData = async () => {
   try {

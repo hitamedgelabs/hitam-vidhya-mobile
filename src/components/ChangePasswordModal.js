@@ -5,8 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Input from './AuthInput'; // Your custom input component
 import Loader from './Loader';
 import { validatePassword } from '../utils/passwordValidator';
-
-const API_URL = 'http://10.0.2.2:8000/api'; // Update if needed
+import config from '../config/api';
+ 
+const API_URL = config.API_URL;
 
 const ChangePasswordModal = ({ onClose }) => {
   const [oldPassword, setOldPassword] = useState('');

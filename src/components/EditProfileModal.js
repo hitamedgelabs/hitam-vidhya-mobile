@@ -1,22 +1,94 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import SelectInput from '../components/Spinner';
 import Calender from './Calender';
 import Input from './AuthInput';
 import { validateSignupStep } from '../utils/validateSignupStep';
 import colors from '../constants/Colors';
+import Loader from '../components/Loader';
+import { fetchStudentData } from '../utils/fetchStudent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from '../config/api';
+ 
+const API_URL = config.API_URL;
 
 const EditProfileModal = ({ onClose }) => {
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // You can call an API here or pass data back via props
-    console.log('Submitted:');
-    onClose();
+  const handleSubmit = async () => {
+    setLoading(true);
+    const payload = {
+      name: form.name,
+      mobile: form.mobile,
+      alternateMobile: form.alternateMobile,
+      email: form.email,
+      dob: form.dob,
+      profilePicture: form.profilePicture,
+      gender: form.gender,
+      linkedinProfile: form.linkedinProfile,
+      twitterProfile: form.twitterProfile,
+      instagramProfile: form.instagramProfile,
+      address: {
+        current: form.addressCurrent,
+        hometown: form.addressHometown
+      },
+      educationDetails: {
+        tenth: {
+          institutionName: form.tenthInstitution,
+          board: form.tenthBoard,
+          percentage: form.tenthPercentage
+        },
+        twelfth: {
+          institutionName: form.twelfthInstitution,
+          board: form.twelfthBoard,
+          percentage: form.twelfthPercentage
+        },
+        bachelors: {
+          institutionName: form.bachelorsInstitution,
+          courseName: form.bachelorsCourse,
+          cgpa: form.bachelorsCgpa
+        }
+      },
+      parentDetails: {
+        name: form.parentName,
+        relation: form.parentRelation,
+        mobile: form.parentMobile,
+        email: form.parentEmail,
+        occupation: form.parentOccupation,
+        address: form.parentAddress
+      }
+    };
+
+    try {
+      const token = await AsyncStorage.getItem('authToken'); // or SecureStore
+      const res = await fetch(`${API_URL}/enrol/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        console.log('Updated Successfully');
+        Alert.alert('Success', 'Updated Successfully');
+        onClose();
+      } else {
+        Alert.alert('Failed', 'Update failed:', result);
+        console.error('Update failed:', result);
+     }
+    } catch (error) {
+      Alert.alert('Error during update:', error);
+      console.error('Error during update:', error);
+    }
+    setLoading(false);
   };
+
 
   const handleChange = (name, value) => {
     if (name === 'confirm password') {
@@ -26,35 +98,55 @@ const EditProfileModal = ({ onClose }) => {
     setForm({ ...form, [name]: value });
   };
 
-  const [form, setForm] = useState({
-      name: '',
-      gender: '',
-      email: '',
-      mobile: '',
-      alternateMobile: '',
-      dob: '',
-      profilePicture: '',
-      linkedinProfile: '',
-      twitterProfile: '',
-      instagramProfile: '',
-      addressCurrent: '',
-      addressHometown: '',
-      tenthInstitution: '',
-      tenthBoard: '',
-      tenthPercentage: '',
-      twelfthInstitution: '',
-      twelfthBoard: '',
-      twelfthPercentage: '',
-      bachelorsInstitution: '',
-      bachelorsCourse: '',
-      bachelorsCgpa: '',
-      parentName: '',
-      parentRelation: '',
-      parentMobile: '',
-      parentEmail: '',
-      parentOccupation: '',
-      parentAddress: '',
+  const [form, setForm] = useState({ });
+
+  const formUpdate = (student) => {
+    setForm({
+      name: student.name || '',
+      mobile: student.mobile || '',
+      email: student.email || '',
+      alternateMobile: student.alternateMobile || '',
+      dob: student.dob ? student.dob.substring(0, 10) : '',
+      profilePicture: student.profilePicture || '',
+      gender: student.gender || '',
+      linkedinProfile: student.linkedinProfile || '',
+      twitterProfile: student.twitterProfile || '',
+      instagramProfile: student.instagramProfile || '',
+      addressCurrent: student.address?.current || '',
+      addressHometown: student.address?.hometown || '',
+      tenthInstitution: student.educationDetails?.tenth?.institutionName || '',
+      tenthBoard: student.educationDetails?.tenth?.board || '',
+      tenthPercentage: student.educationDetails?.tenth?.percentage || '',
+      twelfthInstitution: student.educationDetails?.twelfth?.institutionName || '',
+      twelfthBoard: student.educationDetails?.twelfth?.board || '',
+      twelfthPercentage: student.educationDetails?.twelfth?.percentage || '',
+      bachelorsInstitution: student.educationDetails?.bachelors?.institutionName || '',
+      bachelorsCourse: student.educationDetails?.bachelors?.courseName || '',
+      bachelorsCgpa: student.educationDetails?.bachelors?.cgpa || '',
+      parentName: student.parentDetails?.name || '',
+      parentRelation: student.parentDetails?.relation || '',
+      parentMobile: student.parentDetails?.mobile || '',
+      parentEmail: student.parentDetails?.email || '',
+      parentOccupation: student.parentDetails?.occupation || '',
+      parentAddress: student.parentDetails?.address || '',
     });
+  };
+
+
+  useEffect(() => {
+    const loadStudent = async () => {
+      const studentData = await fetchStudentData();
+      if(studentData === "TOKEN_EXPIRED" || studentData === "STUDENT_NOT_FOUND"){
+        await handleLogout();
+        return;
+      }
+      if (studentData) {
+        formUpdate(studentData);
+        console.log('Student Profile:', studentData);
+      }
+    };
+    loadStudent();
+  }, []);
 
   const renderStep1 = () => (
     <>
@@ -118,17 +210,17 @@ const EditProfileModal = ({ onClose }) => {
   const changeStep = (newStep) => {
     const { valid, newErrors } = validateSignupStep(step, form);
     let localError = false; // use local flag instead of useState
+    if(step>newStep) {
+      setErrors({});
+      setStep(newStep);
+      return;
+    }
 
     if (!valid) {
       setErrors(newErrors);
-      localError = true;
-    }
-    if (step === 1) {
-      // Email format check
-      if (!form.email.includes('@gmail.com') && form.email !== '') {
-        setErrors((prev) => ({ ...prev, email: "Invalid email" }));
+      console.log(newErrors);
+      if(newErrors.email !== "*Required Field" && newErrors.password !== "*Required Field")
         localError = true;
-      }
     }
     if (localError) {
       return; // block step change if any error found
@@ -177,8 +269,13 @@ const EditProfileModal = ({ onClose }) => {
           <TouchableOpacity onPress={onClose} style={styles.cancelBtn}>
             <Text style={styles.btnText}>Close</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn}>
-            <Text style={styles.btnText}>Submit</Text>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            style={[styles.submitBtn, loading && styles.disabledBtn]}
+            disabled={loading}>
+            <Text style={styles.btnText}>
+              {loading ? "Updating..." : "Update"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -23,8 +23,9 @@ import { validatePassword } from '../../utils/passwordValidator';
 import axios from 'axios';
 import Loader from '../../components/Loader';
 import { Alert } from 'react-native';
-
-const API_URL = 'http://10.0.2.2:8000/api';
+import config from '../../config/api';
+ 
+const API_URL = config.API_URL;
 
 const SignupScreen = ({ navigation }) => {
   const [step, setStep] = useState(1); // ⬅️ Multi-step tracker

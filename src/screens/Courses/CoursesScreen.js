@@ -16,8 +16,9 @@ import CourseCard from '../../components/CourseCard';
 import EmptyCourseList from '../../components/EmptyCourseView';
 import Loader from '../../components/Loader';
 import axios from 'axios';
-
-const API_URL = 'http://10.0.2.2:8000/api';
+import config from '../../config/api';
+ 
+const API_URL = config.API_URL;
 
 const CoursesScreen = ({ onSelectCourse }) => {
   const [allCourses, setAllCourses] = useState([]);
@@ -142,7 +143,9 @@ const CoursesScreen = ({ onSelectCourse }) => {
             ListHeaderComponent={() => <View style={{ height: 10 }} />}
             ListFooterComponent={() =>
               loading ? (
-                <Loader message="Fetching courses..." />
+                <View style = {{ marginBottom: 100 }}>
+                  <Loader message="Fetching courses..."/>
+                </View>   
               ) : (
                 <View style={{ height: 100 }} />
               )

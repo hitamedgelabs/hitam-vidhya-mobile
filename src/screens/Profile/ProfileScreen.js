@@ -42,22 +42,21 @@ const ProfileScreen = ({navigation}) => {
     return `${dd}/${mm}/${yyyy}`;
   };
   const [student, setStudent] = useState([]);
-  
+
+  const loadStudent = async () => {
+    setLoading1(true);
+    const studentData = await fetchStudentData();
+    if(studentData === "TOKEN_EXPIRED" || studentData === "STUDENT_NOT_FOUND"){
+      await handleLogout();
+      return;
+    }
+    if (studentData) {
+      setStudent(studentData);
+      console.log('Student Profile:', studentData);
+    }
+    setLoading1(false);
+  };
   useEffect(() => {
-    const loadStudent = async () => {
-      setLoading1(true);
-      const studentData = await fetchStudentData();
-      if(studentData === "TOKEN_EXPIRED" || studentData === "STUDENT_NOT_FOUND"){
-        await handleLogout();
-        return;
-      }
-      if (studentData) {
-        setStudent(studentData);
-        console.log('Student Profile:', studentData);
-      }
-      setLoading1(false);
-    };
-    console.log(student);
     loadStudent();
   }, []);
 
@@ -84,7 +83,7 @@ const ProfileScreen = ({navigation}) => {
 
         {/* Profile Section */}
         <View style={styles.header}>
-          <ProfileImage />
+          <ProfileImage student={student} onUpdate={() => loadStudent()}/>
           <Text style={styles.name}>{student.name}</Text>
           <Text style={styles.email}>{student.email}</Text>
         </View>
@@ -113,7 +112,7 @@ const ProfileScreen = ({navigation}) => {
 
       {/* Modals */}
       <Modal visible={editVisible} animationType="slide" transparent>
-        <EditProfileModal onClose={() => setEditVisible(false)} />
+        <EditProfileModal onClose={() => { setEditVisible(false); loadStudent()}} />
       </Modal>
 
       <Modal visible={passwordVisible} animationType="slide" transparent>
