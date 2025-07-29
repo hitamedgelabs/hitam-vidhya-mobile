@@ -9,14 +9,90 @@ import {
 } from 'react-native';
 import colors from '../../constants/Colors';
 import CourseCard from '../../components/CourseCard';
-import CourseData from '../../../course.json'; // Assuming you have a CourseData file
-import EmptyCourseList from '../../components/EmptyCourseView';
+import EmptyEnrolledCourse from '../../components/EmptyEnrolledCourse';
+import Loader from '../../components/Loader';
+import { fetchStudentData } from '../../utils/fetchStudent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from '../../config/api';
 
-const CoursesScreen = () => {
+const API_URL = config.API_URL;
+
+const CoursesScreen = ({ navigation }) => {
   const [myCourse, setMyCourses] = useState([]);
+  const [unpaidCourses, setUnpaidCourses] = useState([]); // ✅ New state
+  const [student, setStudent] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const handleLogout = async () => {
+    setLoading(true);
+    console.log("Logging out...");
+    try {
+      await AsyncStorage.removeItem('authToken');
+      navigation.replace('LoginPages');
+    } catch (error) {
+      console.error("Error removing auth token during logout:", error);
+    }
+    setLoading(false);
+  };
+
+  const loadStudent = async () => {
+    setLoading(true);
+    const studentData = await fetchStudentData();
+    if(studentData === "TOKEN_EXPIRED" || studentData === "STUDENT_NOT_FOUND"){
+      await handleLogout();
+      return;
+    }
+    if (studentData) {
+      setStudent(studentData);
+      console.log('Student Profile:', studentData);
+    }
+    setLoading(false);
+  };
+
+  const getMyCourses = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      
+      const res = await fetch(`${API_URL}/enrol/enrolled-course`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const paid = data.data.filter(
+          (item) => item.paymentStatus === 'paid' && item.course !== null
+        );
+        const unpaid = data.data.filter(
+          (item) => item.paymentStatus === 'pending' && item.course !== null
+        );
+
+        setMyCourses(paid);
+        setUnpaidCourses(unpaid);
+      } else {
+        throw new Error(data.message || 'Failed to fetch courses');
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error.message);
+    }
+  };
+
   useEffect(() => {
-    setMyCourses(CourseData);
+    loadStudent();
+    getMyCourses();
   }, []);
+
+  if(loading){
+    return (
+      <View style={styles.loadingContainer}>
+        <Loader message='Loading...'/>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -25,18 +101,40 @@ const CoursesScreen = () => {
           style={styles.logo}
         />
       </View>
+
+      <Text style={styles.helloText}>Hello! {student?.name || ''}</Text>
+      {unpaidCourses.length > 0 && (
+        <View>
+          <Text style={styles.unpaidHeading}>Payment Pending</Text>
+          <FlatList
+            data={unpaidCourses}
+            keyExtractor={(item) => item.course._id}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <CourseCard course={item.course} />
+            )}
+          />
+          <View style={styles.unpaidSummaryContainer}>
+            <Text style={styles.unpaidSummaryText}>
+              Seems like you’re interested in this course. Why are you still waiting? Complete your payment to get started!
+            </Text>
+          </View>
+        </View>
+      )}
       <Text style={styles.heading}>My Courses</Text>
       <FlatList
         data={myCourse}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.course._id}
         showsVerticalScrollIndicator={false}
-        ListFooterComponent={() => (<View style={{height: 80}} />)}
-        ListEmptyComponent={() => (<EmptyCourseList/>)}
+        ListEmptyComponent={() => <EmptyEnrolledCourse />}
         renderItem={({ item }) => (
-          <CourseCard course={item}/>
+          <CourseCard course={item.course} />
         )}
         contentContainerStyle={styles.courseList}
+        ListFooterComponent={() => <View style={{ height: 80 }} />}
       />
+
+      
     </SafeAreaView>
   );
 };
@@ -58,16 +156,47 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
   },
-  menuIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
+  helloText: {
+    fontSize: 25,
+    fontWeight: '700',
+    color: colors.darkGreen,
   },
   heading: {
     fontSize: 18,
     fontWeight: '700',
-    marginVertical: 20,
+    marginBottom: 20,
     color: colors.headerText1,
+  },
+  unpaidHeading: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 30,
+    marginBottom: 20,
+    color: colors.headerText1,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f7ffd8ff',
+  },
+  unpaidSummaryContainer: {
+    backgroundColor: '#e6f4ff',  // soft blue background
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3399ff', // slightly deeper blue
+  },
+  unpaidSummaryText: {
+    fontSize: 14,
+    color: '#1a73e8', // soft primary blue
+    lineHeight: 20,
+    fontWeight: '500',
   },
 });
 
