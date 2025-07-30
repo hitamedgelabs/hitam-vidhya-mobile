@@ -8,7 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 import colors from '../../constants/Colors';
-import CourseCard from '../../components/CourseCard';
+import EnrolledCourseCard from '../../components/EnrolledCourseCard';
 import EmptyEnrolledCourse from '../../components/EmptyEnrolledCourse';
 import Loader from '../../components/Loader';
 import { fetchStudentData } from '../../utils/fetchStudent';
@@ -17,7 +17,7 @@ import config from '../../config/api';
 
 const API_URL = config.API_URL;
 
-const CoursesScreen = ({ navigation }) => {
+const CoursesScreen = ({ navigation, onSelectCourse }) => {
   const [myCourse, setMyCourses] = useState([]);
   const [unpaidCourses, setUnpaidCourses] = useState([]); // ✅ New state
   const [student, setStudent] = useState({});
@@ -64,14 +64,10 @@ const CoursesScreen = ({ navigation }) => {
 
       if (res.ok) {
         const paid = data.data.filter(
-          (item) => item.paymentStatus === 'paid' && item.course !== null
+          (item) => item.course !== null
         );
-        const unpaid = data.data.filter(
-          (item) => item.paymentStatus === 'pending' && item.course !== null
-        );
-
+        console.log(data.data);
         setMyCourses(paid);
-        setUnpaidCourses(unpaid);
       } else {
         throw new Error(data.message || 'Failed to fetch courses');
       }
@@ -93,6 +89,10 @@ const CoursesScreen = ({ navigation }) => {
     );
   }
 
+  const openCourse = (item) => {
+    if (onSelectCourse) onSelectCourse(item);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -111,12 +111,12 @@ const CoursesScreen = ({ navigation }) => {
             keyExtractor={(item) => item.course._id}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <CourseCard course={item.course} />
+              <EnrolledCourseCard enrolledCourse={item} />
             )}
           />
           <View style={styles.unpaidSummaryContainer}>
             <Text style={styles.unpaidSummaryText}>
-              Seems like you’re interested in this course. Why are you still waiting? Complete your payment to get started!
+              Payment is still pending for the above course. It may take up to an hour to process. If the issue persists, please re-verify your payment or contact support.
             </Text>
           </View>
         </View>
@@ -128,13 +128,14 @@ const CoursesScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={() => <EmptyEnrolledCourse />}
         renderItem={({ item }) => (
-          <CourseCard course={item.course} />
+          <EnrolledCourseCard 
+            enrolledCourse={item} 
+            onPress={() => openCourse(item)}
+          />
         )}
         contentContainerStyle={styles.courseList}
         ListFooterComponent={() => <View style={{ height: 80 }} />}
       />
-
-      
     </SafeAreaView>
   );
 };
@@ -164,6 +165,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
     fontWeight: '700',
+    marginTop: 20,
     marginBottom: 20,
     color: colors.headerText1,
   },

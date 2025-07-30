@@ -56,19 +56,12 @@ const CourseDetailScreen = ({ courseId }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoBox}>
-        <Image
-          source={require('../../../assets/images/logo.png')}
-          style={styles.logo}
-        />
-      </View>
-
       <Image
         source={{ uri: course.template_image || 'https://via.placeholder.com/300x200' }}
         style={styles.image}
       />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <View style={styles.content}>
           <Text style={styles.title}>{course.name}</Text>
           <Text style={styles.subtitle}>
@@ -97,12 +90,22 @@ const CourseDetailScreen = ({ courseId }) => {
             <Text style={styles.priceText}>
               ₹{(course.fees || 0).toLocaleString()}
             </Text>
-            <Text style={styles.discountText}>Save {course.discount}%</Text>
+            {
+              Number(course.discount) > 0 && 
+              <Text style={styles.discountText}>Save {course.discount}%</Text>
+            }
           </View>
 
           <TouchableOpacity style={styles.enrollButton} onPress={handleEnroll}>
             <Text style={styles.enrollText}>Enroll Now</Text>
           </TouchableOpacity>
+
+          <View style={styles.logoBox}>
+            <Image
+              source={require('../../../assets/images/logo.png')}
+              style={styles.logo}
+            />
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -112,10 +115,8 @@ const CourseDetailScreen = ({ courseId }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.greenbackground },
   logoBox: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    alignItems: 'flex-start',
-    backgroundColor: colors.greenbackground,
+    paddingTop: 30,
+    alignItems: 'flex-end',
   },
   logo: {
     width: 140,
@@ -132,6 +133,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    backgroundColor: colors.greenbackground,
     marginTop: -10,
   },
   title: {
