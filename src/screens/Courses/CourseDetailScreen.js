@@ -12,6 +12,7 @@ import colors from '../../constants/Colors';
 import axios from 'axios';
 import Loader from '../../components/Loader'; // Make sure this file exists
 import config from '../../config/api';
+import { Linking } from 'react-native';
  
 const API_URL = config.API_URL;
 
@@ -37,7 +38,8 @@ const CourseDetailScreen = ({ courseId }) => {
   }, []);
 
   const handleEnroll = () => {
-    Alert.alert('Enrolled!', 'You have successfully enrolled in the course.');
+    console.log(`${config.enroll_url}/enquiry/${courseId}`);
+    Linking.openURL(`${config.enroll_url}/enquiry/${courseId}`)
   };
 
   if (loading) {

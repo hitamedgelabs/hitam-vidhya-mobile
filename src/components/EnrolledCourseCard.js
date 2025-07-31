@@ -10,15 +10,13 @@ const EnrolledCourseCard = ({ enrolledCourse, onPress }) => {
   const course = enrolledCourse.course;
 
   return (
+    <View>
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={{ uri: course.template_image }} style={styles.image} />
-
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={2}>{course.name}</Text>
         <Text style={styles.level}>{course.course_level} • {course.category}</Text>
-
         <Text style={styles.meta}>⏱ {course.duration}</Text>
-
         <View style={styles.row}>
           <Text style={styles.label}>Payment Status:</Text>
           <Text
@@ -32,6 +30,15 @@ const EnrolledCourseCard = ({ enrolledCourse, onPress }) => {
         </View>
       </View>
     </TouchableOpacity>
+    {
+      enrolledCourse.paymentStatus !== 'paid' && 
+      <View style={styles.unpaidSummaryContainer}>
+        <Text style={styles.unpaidSummaryText}>
+          Payment is still pending for the above course. It may take up to an hour to process. If the issue persists, please re-verify your payment or contact support.
+        </Text>
+      </View>
+    }
+    </View>
   );
 };
 
@@ -100,6 +107,20 @@ const styles = StyleSheet.create({
   },
   unpaid: {
     color: '#c0392b',
+  },
+  unpaidSummaryContainer: {
+    backgroundColor: '#e6f4ff',  // soft blue background
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3399ff', // slightly deeper blue
+  },
+  unpaidSummaryText: {
+    fontSize: 14,
+    color: '#1a73e8', // soft primary blue
+    lineHeight: 20,
+    fontWeight: '500',
   },
 });
 
