@@ -16,6 +16,9 @@ import ProfileImage from '../../components/ProfileImage';
 import Loader from '../../components/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchStudentData } from '../../utils/fetchStudent';
+import { Linking } from 'react-native';
+import config from '../../config/api';
+
 
 const ProfileScreen = ({navigation}) => {
   const [editVisible, setEditVisible] = useState(false);
@@ -69,7 +72,6 @@ const ProfileScreen = ({navigation}) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        
         {/* Top Bar with Logo and Logout */}
         <View style={styles.topBar}>
           <Image
@@ -108,8 +110,30 @@ const ProfileScreen = ({navigation}) => {
             <Text style={styles.buttonText}>🔒 Change Password</Text>
           </TouchableOpacity>
         </View>
+        <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Follow Us On</Text>
+        <View style={styles.socialContainer}>
+          <TouchableOpacity onPress={() => Linking.openURL(config.facebook)}>
+            <Image
+              source={require('../../../assets/icons/facebook.png')}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL(config.instagram)}>
+            <Image
+              source={require('../../../assets/icons/instagram.png')}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL(config.twitter)}>
+            <Image
+              source={require('../../../assets/icons/twitter.png')}
+              style={styles.socialIcon}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
       </ScrollView>
-
       {/* Modals */}
       <Modal visible={editVisible} animationType="slide" transparent>
         <EditProfileModal onClose={() => { setEditVisible(false); loadStudent()}} />
@@ -217,7 +241,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f7ffd8ff',
-  }
+  },
+  socialContainer: {
+  flexDirection: 'row',
+  marginTop: 10,
+},
+socialIcon: {
+  marginRight: 20,
+  height: 34,
+  width: 34
+},
+
 });
 
 export default ProfileScreen;

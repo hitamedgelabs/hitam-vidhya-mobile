@@ -80,9 +80,9 @@ const LoginScreen = ({ navigation }) => {
         try {
           const otpRes = await axios.post(`${API_URL}/student/resend-otp`, { email });
           if (otpRes?.data?.success) {
-            Alert.alert('Email Verification Required', 'Please verify your email before logging in.');
+            console.log('Email Verification Required', 'Please verify your email before logging in.');
           } else {
-            Alert.alert('Error', otpRes?.data?.message || 'Failed to send OTP');
+            console.log('Error', otpRes?.data?.message || 'Failed to send OTP');
           }
           setOtpVerification(true);
         } catch (otpErr) {

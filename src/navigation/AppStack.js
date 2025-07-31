@@ -6,12 +6,9 @@ import ApplicationMain from '../navigation/BottomTabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View } from 'react-native';
 import Loader from '../components/Loader';
-import axios from 'axios';
 
 
 const Stack = createStackNavigator();
-
-const API_URL = 'http://10.0.2.2:8000/api';
 
 const AppStack = () => {
   const [initialRoute, setInitialRoute] = useState(null); // null means loading

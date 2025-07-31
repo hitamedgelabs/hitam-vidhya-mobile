@@ -12,6 +12,7 @@ import axios from 'axios';
 import Loader from './Loader';  
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config/api';
+import FollowPromptModal from './FollowPromptModal';
  
 const API_URL = config.API_URL;
 
@@ -20,6 +21,8 @@ const OTPVerification = ({ visible, email, onClose, onVerified }) => {
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [showFollowPrompt, setShowFollowPrompt] = useState(false);
+  const [token, setToken] = useState();
 
   useEffect(() => {
     let interval;
@@ -46,9 +49,8 @@ const OTPVerification = ({ visible, email, onClose, onVerified }) => {
         const token = res.data.data.token;
         // ✅ Save token securely
         console.log(res);
-        await AsyncStorage.setItem('authToken', token);
-        Alert.alert('Success', 'Email verified successfully');
-        onVerified(token);
+        setShowFollowPrompt(true);
+        setToken(token);
       } else {
         Alert.alert('Error', res.data.message || 'Verification failed');
       }
@@ -73,6 +75,14 @@ const OTPVerification = ({ visible, email, onClose, onVerified }) => {
       Alert.alert('Error', err?.response?.data?.message || 'Resend failed');
     }
   };
+
+  if(showFollowPrompt) {
+    return <FollowPromptModal onContinue={async () => {
+      setShowFollowPrompt(false);
+      await AsyncStorage.setItem('authToken', token);
+      onVerified(token);
+    }} />
+  }
 
   return (
     <View style={styles.overlay}>

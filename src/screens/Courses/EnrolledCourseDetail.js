@@ -18,6 +18,37 @@ const EnrolledCourseDetail = ({ enrolledCourse }) => {
       </View>
     );
   }
+  if (enrolledCourse.paymentStatus !== 'paid') {
+  return (
+    <SafeAreaView style={styles.container}>
+      <Image
+        source={{ uri: enrolledCourse.course?.template_image || 'https://via.placeholder.com/300x200' }}
+        style={styles.image}
+      />
+      <View style={[styles.scrollContent, {flex: 1}]}>
+        <View style={styles.pendingBox}>
+          <Text style={styles.pendingHeading}>⏳ Payment Pending</Text>
+          <Text style={styles.pendingText}>
+            Your enrollment is almost complete! Please revise your payment to access the course content.
+          </Text>
+
+          {/* Optional: Payment action button */}
+          {/* <TouchableOpacity style={styles.paymentButton}>
+            <Text style={styles.paymentButtonText}>Complete Payment</Text>
+          </TouchableOpacity> */}
+        </View>
+
+        <View style={styles.logoBox}>
+          <Image
+            source={require('../../../assets/images/logo.png')}
+            style={styles.logo}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 
   const course = enrolledCourse.course;
   const joinedDate = new Date(course.createdAt).toLocaleDateString();
@@ -156,6 +187,45 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#555',
   },
+
+
+
+  pendingBox: {
+  backgroundColor: '#fff3cd',
+  borderColor: '#ffeeba',
+  borderWidth: 1,
+  borderRadius: 10,
+  padding: 20,
+  marginTop: 30,
+  marginBottom: 20,
+},
+pendingHeading: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#856404',
+  marginBottom: 10,
+},
+pendingText: {
+  fontSize: 14,
+  color: '#856404',
+  lineHeight: 20,
+},
+pending: {
+  color: '#ff9800',
+  fontWeight: 'bold',
+},
+paymentButton: {
+  marginTop: 15,
+  backgroundColor: '#ff9800',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 6,
+},
+paymentButtonText: {
+  color: '#fff',
+  fontWeight: '600',
+  textAlign: 'center',
+},
 });
 
 export default EnrolledCourseDetail;
