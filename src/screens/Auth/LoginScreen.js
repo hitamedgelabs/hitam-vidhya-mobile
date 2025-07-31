@@ -21,6 +21,8 @@ import { Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../../config/api';
+import { Keyboard } from 'react-native';
+
  
 const API_URL = config.API_URL;
 
@@ -52,6 +54,7 @@ const LoginScreen = ({ navigation }) => {
   }
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
     setLoading(true);
     const canProceed = fieldValidation();
     if (!canProceed) {
