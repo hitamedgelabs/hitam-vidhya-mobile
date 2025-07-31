@@ -1,11 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View, TextInput, Text, TouchableOpacity, Image } from 'react-native';
+import {
+  Animated,
+  StyleSheet,
+  View,
+  TextInput,
+  Text,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import colors from '../constants/Colors';
 
 const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const [secure, setSecure] = useState(true);
+  const [inError, setError] = useState(error);
+  const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
+
   const shouldFloat = isFocused || value !== '';
 
   useEffect(() => {
@@ -15,6 +25,54 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
       useNativeDriver: false,
     }).start();
   }, [isFocused, value]);
+
+  const getKeyboardType = () => {
+    if (placeholder === 'Mobile') return 'phone-pad';
+    if (placeholder === 'Percentage' || placeholder === 'CGPA') return 'decimal-pad';
+    if (placeholder.toLowerCase().includes('email')) return 'email-address';
+    return 'default';
+  };
+
+  const getMaxLength = () => {
+    if (placeholder === 'Mobile') return 10;
+    if (placeholder === 'Percentage') return 5;
+    if (placeholder === 'CGPA') return 4;
+    return undefined;
+  };
+
+  const validate = (text) => {
+    if (placeholder.includes('Mobile') && text !== '') {
+      if (!/^\d{10}$/.test(text)) {
+        setError('Mobile number must be 10 digits');
+        return;
+      }
+    }
+
+    if (placeholder === 'CGPA') {
+      const num = parseFloat(text);
+      if (isNaN(num) || num < 0 || num > 10) {
+        setError('Enter a valid CGPA (0 - 10)');
+        return;
+      }
+    }
+
+    if (placeholder === 'Percentage') {
+      const num = parseFloat(text);
+      if (isNaN(num) || num < 0 || num > 100) {
+        setError('Enter a valid Percentage (0 - 100)');
+        return;
+      }
+    }
+
+    if (placeholder.toLowerCase().includes('email')) {
+      if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(text)) {
+        setError('Enter a valid Gmail address');
+        return;
+      }
+    }
+
+    setError(''); // No errors
+  };
 
   const labelStyle = {
     position: 'absolute',
@@ -31,7 +89,6 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
     backgroundColor: colors.inputBackground,
     paddingHorizontal: 5,
   };
-  const isNumeric = ['Mobile', 'Percentage', 'CGPA'].includes(placeholder);
 
   return (
     <View style={{ marginBottom: 10 }}>
@@ -40,11 +97,26 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
         <TextInput
           style={[styles.inputField, { flex: 1 }]}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={(text) => {
+            onChangeText(text);
+            if (error) validate(text);
+          }}
           secureTextEntry={placeholder.includes('Password') && secure}
-          keyboardType={isNumeric ? 'phone-pad' : 'default'}
+          keyboardType={getKeyboardType()}
+          autoCapitalize={placeholder.toLowerCase().includes('email') ? 'none' : 'sentences'}
+          textContentType={
+            placeholder.toLowerCase().includes('email')
+              ? 'emailAddress'
+              : placeholder === 'Mobile'
+              ? 'telephoneNumber'
+              : 'none'
+          }
+          maxLength={getMaxLength()}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            validate(value);
+          }}
           {...rest}
         />
         {placeholder.includes('Password') && (
@@ -61,7 +133,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {inError && <Text style={styles.errorText}>{inError}</Text>}
     </View>
   );
 };
@@ -92,8 +164,8 @@ const styles = StyleSheet.create({
   },
   focusedBorder: {
     borderWidth: 1,
-    borderColor: '#066a26ff'
-  }
+    borderColor: '#066a26ff',
+  },
 });
 
 export default Input;
