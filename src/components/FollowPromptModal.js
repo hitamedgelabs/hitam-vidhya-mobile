@@ -43,6 +43,12 @@ const FollowPromptModal = ({ onContinue }) => {
               style={styles.icon}
             />
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL(config.linkedin)}>
+            <Image
+              source={require('../../assets/icons/linkedin.png')}
+              style={[styles.socialIcon, {height: 30, width: 30, marginTop: 2, marginLeft: 5}]}
+            />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => Linking.openURL(config.twitter)}>
             <Image
               source={require('../../assets/icons/twitter.png')}

@@ -125,6 +125,12 @@ const ProfileScreen = ({navigation}) => {
               style={styles.socialIcon}
             />
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL(config.linkedin)}>
+            <Image
+              source={require('../../../assets/icons/linkedin.png')}
+              style={[styles.socialIcon, {height: 28, width: 28, marginTop: 2}]}
+            />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => Linking.openURL(config.twitter)}>
             <Image
               source={require('../../../assets/icons/twitter.png')}
@@ -245,12 +251,12 @@ const styles = StyleSheet.create({
   socialContainer: {
   flexDirection: 'row',
   marginTop: 10,
-},
-socialIcon: {
-  marginRight: 20,
-  height: 34,
-  width: 34
-},
+  },
+  socialIcon: {
+    marginRight: 20,
+    height: 34,
+    width: 34
+  },
 
 });
 
