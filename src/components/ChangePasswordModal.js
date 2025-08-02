@@ -6,12 +6,15 @@ import Input from './AuthInput'; // Your custom input component
 import Loader from './Loader';
 import { validatePassword } from '../utils/passwordValidator';
 import config from '../config/api';
+import colors from '../constants/Colors';
+import ForgotPasswordModal from './ForgotPasswordModal';
  
 const API_URL = config.API_URL;
 
-const ChangePasswordModal = ({ onClose }) => {
+const ChangePasswordModal = ({ onClose, email }) => {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [forgotVisible, setForgotVisible] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +53,16 @@ const ChangePasswordModal = ({ onClose }) => {
       setLoading(false);
     }
   };
+  if(forgotVisible) {
+    return <ForgotPasswordModal
+          visible={forgotVisible}
+          onClose={() => {setForgotVisible(false); onClose();}}
+          emailId = {email}
+          onSuccess={() => {
+            Alert.alert('Success', 'Password changed successfully');
+          }}
+        />
+  }
 
   return (
     <View style={styles.modalOverlay}>
@@ -71,7 +84,9 @@ const ChangePasswordModal = ({ onClose }) => {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
-
+        <TouchableOpacity onPress={() => setForgotVisible(true)} style = {{alignSelf: 'flex-start'}}>
+          <Text style={{ color: colors.darkGreen }}>Forgot Old Password?</Text>
+        </TouchableOpacity>
         <View style={styles.buttonRow}>
           <TouchableOpacity onPress={onClose} style={styles.cancelBtn}>
             <Text style={styles.btnText}>Cancel</Text>

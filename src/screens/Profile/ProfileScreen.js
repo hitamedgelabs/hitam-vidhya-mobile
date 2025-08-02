@@ -146,7 +146,7 @@ const ProfileScreen = ({navigation}) => {
       </Modal>
 
       <Modal visible={passwordVisible} animationType="slide" transparent>
-        <ChangePasswordModal onClose={() => setPasswordVisible(false)} />
+        <ChangePasswordModal onClose={() => setPasswordVisible(false)} email = {student.email}/>
       </Modal>
       { loading && (
         <View style = {styles.loadingContainer}>

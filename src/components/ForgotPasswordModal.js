@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -14,24 +14,27 @@ import Input from './AuthInput';
 import Button from './AuthButton';
 import { validatePassword } from '../utils/passwordValidator';
 import config from '../config/api';
- 
+
 const API_URL = config.API_URL;
 
-const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
+const ForgotPasswordModal = ({ visible, onClose, emailId = '', onSuccess }) => {
   const [step, setStep] = useState(1); // 1: email, 2: otp + new password
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(emailId);
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [isFirst, setIsFirst] = useState(false);
+
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleSendOtp = async () => {
     if (!email) return Alert.alert('Error', 'Email is required');
 
     try {
-      setLoading(true);
+      if (emailId === '') setLoading(true);
       const res = await axios.post(`${API_URL}/student/forgot-password`, { email });
-
       if (res.data.success) {
         Alert.alert('OTP Sent', 'Check your email for the OTP.');
         setStep(2);
@@ -51,14 +54,16 @@ const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
       return Alert.alert('Error', 'OTP and new password are required');
     }
 
-    const { valid: passwordValid, errors: passwordErrors } = validatePassword(newPassword, confirmPassword);
+    const { valid: passwordValid, errors: passwordErrors } = validatePassword(
+      newPassword,
+      confirmPassword
+    );
+
     if (!passwordValid) {
-        // setErrors((prev) => ({ ...prev, password: passwordErrors }));
-        setTimeout(() => {
-            Alert.alert("Password Error", passwordErrors);
-        }, 0);
-        return;
+      Alert.alert('Password Error', passwordErrors);
+      return;
     }
+
     try {
       setLoading(true);
       const res = await axios.post(`${API_URL}/student/reset-password`, {
@@ -73,7 +78,8 @@ const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
         setEmail('');
         setOtp('');
         setNewPassword('');
-        onSuccess?.(); // optional callback
+        setConfirmPassword('');
+        onSuccess?.();
         onClose();
       } else {
         Alert.alert('Error', res.data.message || 'Reset failed');
@@ -85,6 +91,32 @@ const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
+
+  // Auto OTP for emailId prop
+  useEffect(() => {
+    const runOtpFlow = async () => {
+      if (emailId && !isFirst) {
+        setEmail(emailId);
+        setStep(2);
+        await wait(1000);
+        handleSendOtp();
+        setIsFirst(true);
+      }
+    };
+    runOtpFlow();
+  }, [emailId]);
+
+  // Reset all state on modal close
+  useEffect(() => {
+    if (!visible) {
+      setStep(1);
+      setEmail('');
+      setOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsFirst(false);
+    }
+  }, [visible]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -98,7 +130,7 @@ const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
                 placeholder="Enter your registered email"
                 value={email}
                 onChangeText={setEmail}
-                />
+              />
               <Button
                 title={loading ? 'Sending OTP...' : 'Send OTP'}
                 onPress={handleSendOtp}
@@ -115,17 +147,17 @@ const ForgotPasswordModal = ({ visible, onClose, onSuccess }) => {
                 placeholderTextColor="#aaa"
                 value={otp}
                 onChangeText={setOtp}
-                />
+              />
               <Input
                 placeholder="Enter New Password"
                 value={newPassword}
                 onChangeText={setNewPassword}
-                />
+              />
               <Input
                 placeholder="Confirm New Password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                />
+              />
               <Button
                 title={loading ? 'Resetting...' : 'Reset Password'}
                 onPress={handleResetPassword}
@@ -195,5 +227,12 @@ const styles = StyleSheet.create({
     color: '#d00',
     fontSize: 16,
     fontWeight: '600',
+  },
+  resendContainer: {
+    alignSelf: 'flex-start',
+  },
+  resendText: {
+    fontSize: 10,
+    fontWeight: '500',
   },
 });

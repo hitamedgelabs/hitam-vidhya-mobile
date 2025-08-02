@@ -153,13 +153,12 @@ const LoginScreen = ({ navigation }) => {
           />
         </Modal>
         <ForgotPasswordModal
-  visible={forgotVisible}
-  onClose={() => setForgotVisible(false)}
-  onSuccess={() => {
-    Alert.alert('Password changed', 'You can now login with your new password');
-  }}
-/>
-
+          visible={forgotVisible}
+          onClose={() => setForgotVisible(false)}
+          onSuccess={() => {
+            Alert.alert('Password changed', 'You can now login with your new password');
+          }}
+        />
         {loading && <View style={styles.loaderContainer}>
           <Loader message="Logging in..." />
         </View>}
