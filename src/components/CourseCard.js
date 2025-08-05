@@ -3,8 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import colors from '../constants/Colors';
 
 const CourseCard = ({ course, onPress }) => {
-  const finalPrice = course.fees - (course.fees * (course.discount || 0)) / 100;
-
+  const originalPrice = Math.round(course.fees / (1 - (course.discount || 0) / 100));
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <Image source={{ uri: course.template_image }} style={styles.image} alt='Course Image'/>
@@ -19,9 +18,9 @@ const CourseCard = ({ course, onPress }) => {
         </View>
 
         <View style={styles.priceRow}>
-          <Text style={styles.price}>₹{finalPrice}</Text>
+          <Text style={styles.price}>₹{course.fees}</Text>
           {course.discount > 0 && (
-            <Text style={styles.discount}>₹{course.fees} • {course.discount}% OFF</Text>
+            <Text style={styles.discount}>₹{originalPrice} • {course.discount}% OFF</Text>
           )}
         </View>
 
