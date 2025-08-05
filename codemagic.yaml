@@ -1,0 +1,26 @@
+workflows:
+  react-native-ios:
+    name: React Native iOS Build
+    environment:
+      vars:
+        XCODE_WORKSPACE: "ios/HitamVidhya.xcworkspace"
+        XCODE_SCHEME: "HitamVidhya"
+      node: 18.16.0
+      xcode: 15.2
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          cd ios
+          pod install
+      - name: Build .ipa
+        script: |
+          xcodebuild -workspace "$XCODE_WORKSPACE" -scheme "$XCODE_SCHEME" -sdk iphoneos -configuration Release archive -archivePath $CM_BUILD_DIR/$XCODE_SCHEME.xcarchive
+          xcodebuild -exportArchive -archivePath $CM_BUILD_DIR/$XCODE_SCHEME.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath $CM_BUILD_DIR/ios_build
+    artifacts:
+      - ios_build/*.ipa
+    publishing:
+      email:
+        recipients:
+          - you@hitamvidhya.com
