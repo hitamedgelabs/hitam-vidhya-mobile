@@ -14,7 +14,7 @@ import Loader from '../../components/Loader'; // Make sure this file exists
 import config from '../../config/api';
 import { Linking } from 'react-native';
  
-const API_URL = config.API_URL;
+const API_URL = config.COURSE_URL;
 
 const CourseDetailScreen = ({ courseId }) => {
   const [course, setCourse] = useState(null);
