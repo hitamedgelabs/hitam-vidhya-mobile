@@ -18,7 +18,7 @@ import Loader from '../../components/Loader';
 import axios from 'axios';
 import config from '../../config/api';
  
-const API_URL = config.API_URL;
+const API_URL = config.COURSE_URL;
 
 const CoursesScreen = ({ onSelectCourse }) => {
   const [allCourses, setAllCourses] = useState([]);
