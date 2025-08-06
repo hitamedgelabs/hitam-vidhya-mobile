@@ -88,6 +88,9 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
     setForm({ ...form, [name]: value });
+    if(value && value !== ''){
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
   const today = () => {
@@ -192,7 +195,7 @@ const SignupScreen = ({ navigation }) => {
       <Input placeholder="Alternate Mobile" value={form.alternateMobile} onChangeText={(v) => handleChange('alternateMobile', v)} />
     
       <Calender value={form.dob} onChange={(v) => handleChange('dob', v)} error={errors.dob}/>
-      <Input placeholder="Linked Profile" value={form.linkedinProfile} onChangeText={(v) => handleChange('linkedinProfile', v)} />
+      <Input placeholder="LinkedIn Profile" value={form.linkedinProfile} onChangeText={(v) => handleChange('linkedinProfile', v)} />
       <Input placeholder="Twitter Profile" value={form.twitterProfile} onChangeText={(v) => handleChange('twitterProfile', v)} />
       <Input placeholder="Instagram Profile" value={form.instagramProfile} onChangeText={(v) => handleChange('instagramProfile', v)} />
       <Input placeholder="Current Address" value={form.addressCurrent} onChangeText={(v) => handleChange('addressCurrent', v)} error={errors.addressCurrent} />

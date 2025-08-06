@@ -35,6 +35,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
 
   const getMaxLength = () => {
     if (placeholder === 'Mobile') return 10;
+    if (placeholder === 'Alternate Mobile') return 10;
     if (placeholder === 'Percentage') return 5;
     if (placeholder === 'CGPA') return 4;
     return undefined;
