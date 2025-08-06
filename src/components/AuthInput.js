@@ -134,6 +134,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
         )}
       </View>
       {inError && <Text style={styles.errorText}>{inError}</Text>}
+      {error && !inError && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };

@@ -248,10 +248,7 @@ const SignupScreen = ({ navigation }) => {
       // Password validation
       const { valid: passwordValid, errors: passwordErrors } = validatePassword(form.password, confirmPassword);
       if (!passwordValid) {
-        // setErrors((prev) => ({ ...prev, password: passwordErrors }));
-        setTimeout(() => {
-          Alert.alert("Password Error", passwordErrors);
-        }, 0);
+        setErrors((prev) => ({ ...prev, password: passwordErrors }));
         localError = true;
       }
     }

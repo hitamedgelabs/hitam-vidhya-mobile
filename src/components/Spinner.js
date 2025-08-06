@@ -13,7 +13,7 @@ const Spinner = ({ items, value, onValueChange, placeholder, error }) => {
     return true;
   }
   return (
-    <View style={{ marginBottom: 10, position: 'relative', height: 50 }}>
+    <View style={{ marginBottom: 10, position: 'relative' }}>
       {/* Background Input (non-editable) */}
       <View style={StyleSheet.absoluteFill}>
         <Input
@@ -35,17 +35,17 @@ const Spinner = ({ items, value, onValueChange, placeholder, error }) => {
         style={pickerSelectStyles}
       />
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <View style = {styles.errorText}/>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   errorText: {
-    color: 'red',
-    fontSize: 10,
-    marginTop: 2,
+    height: 10,
+    marginTop: 4,
     marginLeft: 4,
+    marginBottom: 5
   },
 });
 
