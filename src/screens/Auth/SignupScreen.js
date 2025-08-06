@@ -28,27 +28,11 @@ import config from '../../config/api';
 const API_URL = config.API_URL;
 
 const SignupScreen = ({ navigation }) => {
-  const [step, setStep] = useState(1); // ⬅️ Multi-step tracker
+  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [otpVerification, setOtpVerification] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const backAction = () => {
-      if (step > 1) {
-        setStep(step - 1); // go to previous step
-        return true; // prevent default behavior
-      }
-      return false; // allow default exit behavior
-    };
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, [step]);
-
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [form, setForm] = useState({
     name: '',
@@ -80,41 +64,53 @@ const SignupScreen = ({ navigation }) => {
     parentAddress: '',
     password: '',
   });
-  const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    const backAction = () => {
+      if (step > 1) {
+        setStep(step - 1);
+        return true;
+      }
+      return false;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [step]);
 
   const handleChange = (name, value) => {
     if (name === 'confirm password') {
       setConfirmPassword(value);
+      if (form.password && form.password !== value) {
+        setErrors((prev) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+      }
       return;
     }
-    setForm({ ...form, [name]: value });
-    if(value && value !== ''){
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (value && value !== '') {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   const today = () => {
-    const today = new Date();
+    const d = new Date();
+    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
 
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-    const year = today.getFullYear();
-
-    const hours = String(today.getHours()).padStart(2, '0');
-    const minutes = String(today.getMinutes()).padStart(2, '0');
-    console.log(`${day}-${month}-${year} ${hours}:${minutes}`);
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
-  }
-  
   const handleSignUp = async () => {
+    const { valid, newErrors } = validateSignupStep(step, form);
+    if (!valid) {
+      setErrors(newErrors);
+      return;
+    }
+    if (Object.values(errors).some((msg) => msg)) {
+      return;
+    }
     setLoading(true);
     const studentData = {
-      name: form.name,
-      gender: form.gender,
-      email: form.email,
-      mobile: form.mobile,
+      ...form,
       alternateMobile: form.alternateMobile || undefined,
-      dob: form.dob,
       profilePicture: form.profilePicture || "default-profile.png",
       linkedinProfile: form.linkedinProfile?.trim() || undefined,
       twitterProfile: form.twitterProfile?.trim() || undefined,
@@ -148,185 +144,160 @@ const SignupScreen = ({ navigation }) => {
         occupation: form.parentOccupation,
         address: form.parentAddress,
       },
-      password: form.password,
       courseEnrolled: [],
-      joinedAt: today(), // OR omit this field — your backend sets default
+      joinedAt: today(),
     };
 
     try {
       const res = await axios.post(`${API_URL}/student/register`, studentData);
-      if (res.data.success) {
-        setOtpVerification(true); // show OTP modal/screen
-      } else {
-        Alert.alert("Signup Error", res.data.message);
-      }
+      if (res.data.success) setOtpVerification(true);
+      else Alert.alert("Signup Error", res.data.message);
     } catch (err) {
       console.error("Signup error:", err?.response?.data || err.message);
-      Alert.alert(
-        "Signup Failed",
-        err?.response?.data?.message || err.message || "Server error"
-      );
+      Alert.alert("Signup Failed", err?.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-
-  const renderStep1 = () => (
-    <>
-      <Text style={styles.section}>Basic Details</Text>
-      <Input placeholder="Full Name" value={form.name} onChangeText={(v) => handleChange('name', v)} error={errors.name} />
-
-      <SelectInput
-        placeholder="Select Gender"
-        value={form.gender}
-        onValueChange={(v) => handleChange('gender', v)}
-        items={[
-          { label: 'Male', value: 'Male' },
-          { label: 'Female', value: 'Female' },
-          { label: 'Other', value: 'Other' },
-        ]}
-        error={errors.gender}
-      />
-      <Input placeholder="Email" value={form.email} onChangeText={(v) => handleChange('email', v)} error={errors.email} />
-      <Input placeholder="Password" value={form.password} onChangeText={(v) => handleChange('password', v)} error={errors.password} />
-      <Input placeholder="Confirm Password" value={confirmPassword} onChangeText={(v) => handleChange('confirm password', v)} />
-
-      <Input placeholder="Mobile" value={form.mobile} onChangeText={(v) => handleChange('mobile', v)} error={errors.mobile} />
-      <Input placeholder="Alternate Mobile" value={form.alternateMobile} onChangeText={(v) => handleChange('alternateMobile', v)} />
-    
-      <Calender value={form.dob} onChange={(v) => handleChange('dob', v)} error={errors.dob}/>
-      <Input placeholder="LinkedIn Profile" value={form.linkedinProfile} onChangeText={(v) => handleChange('linkedinProfile', v)} />
-      <Input placeholder="Twitter Profile" value={form.twitterProfile} onChangeText={(v) => handleChange('twitterProfile', v)} />
-      <Input placeholder="Instagram Profile" value={form.instagramProfile} onChangeText={(v) => handleChange('instagramProfile', v)} />
-      <Input placeholder="Current Address" value={form.addressCurrent} onChangeText={(v) => handleChange('addressCurrent', v)} error={errors.addressCurrent} />
-      <Input placeholder="Hometown" value={form.addressHometown} onChangeText={(v) => handleChange('addressHometown', v)} error={errors.addressHometown} />
-    </>
-  );
-
-
-  const renderStep2 = () => (
-    <>
-      <Text style={styles.section}>10th Details</Text>
-      <Input placeholder="Institution" value={form.tenthInstitution} onChangeText={(v) => handleChange('tenthInstitution', v)} error={errors.tenthInstitution} />
-      <Input placeholder="Board" value={form.tenthBoard} onChangeText={(v) => handleChange('tenthBoard', v)} error={errors.tenthBoard} />
-      <Input placeholder="Percentage" value={form.tenthPercentage} onChangeText={(v) => handleChange('tenthPercentage', v)} error={errors.tenthPercentage} />
-      <Text style={styles.section}>12th Details</Text>
-      <Input placeholder="Institution" value={form.twelfthInstitution} onChangeText={(v) => handleChange('twelfthInstitution', v)} error={errors.twelfthInstitution} />
-      <Input placeholder="Board" value={form.twelfthBoard} onChangeText={(v) => handleChange('twelfthBoard', v)} error={errors.twelfthBoard} />
-      <Input placeholder="Percentage" value={form.twelfthPercentage} onChangeText={(v) => handleChange('twelfthPercentage', v)} error={errors.twelfthPercentage} />
-      <Text style={styles.section}>Bachelors Details</Text>
-      <Input placeholder="Institution" value={form.bachelorsInstitution} onChangeText={(v) => handleChange('bachelorsInstitution', v)} error={errors.bachelorsInstitution} />
-      <Input placeholder="Course Name" value={form.bachelorsCourse} onChangeText={(v) => handleChange('bachelorsCourse', v)} error={errors.bachelorsCourse} />
-      <Input placeholder="CGPA" value={form.bachelorsCgpa} onChangeText={(v) => handleChange('bachelorsCgpa', v)} error={errors.bachelorsCgpa} />
-    </>
-  );
-
-
-  const renderStep3 = () => (
-    <>
-      <Text style={styles.section}>Parent Details</Text>
-      <Input placeholder="Full Name" value={form.parentName} onChangeText={(v) => handleChange('parentName', v)} error={errors.parentName} />
-      <Input placeholder="Relation" value={form.parentRelation} onChangeText={(v) => handleChange('parentRelation', v)} error={errors.parentRelation} />
-      <Input placeholder="Mobile" value={form.parentMobile} onChangeText={(v) => handleChange('parentMobile', v)} error={errors.parentMobile} />
-      <Input placeholder="Email" value={form.parentEmail} onChangeText={(v) => handleChange('parentEmail', v)} error={errors.parentEmail} />
-      <Input placeholder="Occupation" value={form.parentOccupation} onChangeText={(v) => handleChange('parentOccupation', v)} error={errors.parentOccupation} />
-      <Input placeholder="Address" value={form.parentAddress} onChangeText={(v) => handleChange('parentAddress', v)} error={errors.parentAddress} />
-    </>
-  );
-  
   const changeStep = (newStep) => {
+    if (newStep < step) {
+      setErrors({});
+      setStep(newStep);
+      return;
+    }
     const { valid, newErrors } = validateSignupStep(step, form);
-    let localError = false; // use local flag instead of useState
-
     if (!valid) {
       setErrors(newErrors);
-      localError = true;
+      return;
     }
+
     if (step === 1) {
-      // Email format check
-      if (!form.email.includes('@gmail.com') && form.email !== '') {
-        setErrors((prev) => ({ ...prev, email: "Invalid email" }));
-        localError = true;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(form.email)) {
+        setErrors((prev) => ({ ...prev, email: 'Invalid email address' }));
+        return;
       }
-      // Password validation
-      const { valid: passwordValid, errors: passwordErrors } = validatePassword(form.password, confirmPassword);
-      if (!passwordValid) {
-        setErrors((prev) => ({ ...prev, password: passwordErrors }));
-        localError = true;
+
+      const { valid: pwValid, errors: pwErrors } = validatePassword(form.password, confirmPassword);
+      if (!pwValid) {
+        setErrors((prev) => ({ ...prev, ...pwErrors }));
+        return;
       }
     }
-    if (localError) {
-      return; // block step change if any error found
+    if (Object.values(errors).some((msg) => msg)) {
+      return;
     }
+
     setErrors({});
     setStep(newStep);
   };
 
+  const bind = (field) => ({
+    value: form[field],
+    onChangeText: (v) => handleChange(field, v),
+    error: errors[field],
+    setError: (msg) => setErrors((prev) => ({ ...prev, [field]: msg })),
+  });
+
+  const renderStep1 = () => (
+    <>
+      <Text style={styles.section}>Basic Details</Text>
+      <Input placeholder="Full Name" {...bind('name')} />
+      <SelectInput
+        placeholder="Select Gender"
+        value={form.gender}
+        onValueChange={(v) => handleChange('gender', v)}
+        items={[{ label: 'Male', value: 'Male' }, { label: 'Female', value: 'Female' }, { label: 'Other', value: 'Other' }]}
+        error={errors.gender}
+      />
+      <Input placeholder="Email" {...bind('email')} />
+      <Input placeholder="Password" {...bind('password')} />
+      <Input
+        placeholder="Confirm Password"
+        value={confirmPassword}
+        onChangeText={(v) => handleChange('confirm password', v)}
+        error={errors.confirmPassword}
+        setError={(msg) => setErrors((prev) => ({ ...prev, confirmPassword: msg }))}
+      />
+      <Input placeholder="Mobile" {...bind('mobile')} />
+      <Input placeholder="Alternate Mobile" {...bind('alternateMobile')} />
+      <Calender value={form.dob} onChange={(v) => handleChange('dob', v)} error={errors.dob} />
+      <Input placeholder="LinkedIn Profile" {...bind('linkedinProfile')} />
+      <Input placeholder="Twitter Profile" {...bind('twitterProfile')} />
+      <Input placeholder="Instagram Profile" {...bind('instagramProfile')} />
+      <Input placeholder="Current Address" {...bind('addressCurrent')} />
+      <Input placeholder="Hometown" {...bind('addressHometown')} />
+    </>
+  );
+
+  const renderStep2 = () => (
+    <>
+      <Text style={styles.section}>10th Details</Text>
+      <Input placeholder="Institution" {...bind('tenthInstitution')} />
+      <Input placeholder="Board" {...bind('tenthBoard')} />
+      <Input placeholder="Percentage" {...bind('tenthPercentage')} />
+      <Text style={styles.section}>12th Details</Text>
+      <Input placeholder="Institution" {...bind('twelfthInstitution')} />
+      <Input placeholder="Board" {...bind('twelfthBoard')} />
+      <Input placeholder="Percentage" {...bind('twelfthPercentage')} />
+      <Text style={styles.section}>Bachelors Details</Text>
+      <Input placeholder="Institution" {...bind('bachelorsInstitution')} />
+      <Input placeholder="Course Name" {...bind('bachelorsCourse')} />
+      <Input placeholder="CGPA" {...bind('bachelorsCgpa')} />
+    </>
+  );
+
+  const renderStep3 = () => (
+    <>
+      <Text style={styles.section}>Parent Details</Text>
+      <Input placeholder="Full Name" {...bind('parentName')} />
+      <Input placeholder="Relation" {...bind('parentRelation')} />
+      <Input placeholder="Mobile" {...bind('parentMobile')} />
+      <Input placeholder="Email" {...bind('parentEmail')} />
+      <Input placeholder="Occupation" {...bind('parentOccupation')} />
+      <Input placeholder="Address" {...bind('parentAddress')} />
+    </>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={10}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Image
-            source={require('../../../assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+          <Image source={require('../../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.title}>Sign Up</Text>
+
           {step === 1 && renderStep1()}
           {step === 2 && renderStep2()}
           {step === 3 && renderStep3()}
+
           <View style={styles.stepIndicator}>
             {[1, 2, 3].map((s) => (
-            <View
-              key={s}
-              style={[
-                styles.dot,
-                step === s ? styles.activeDot : styles.inactiveDot
-              ]}
-            />
+              <View key={s} style={[styles.dot, step === s ? styles.activeDot : styles.inactiveDot]} />
             ))}
           </View>
-          {/* Navigation Buttons */}
+
           <View style={styles.buttonRow}>
-            {step > 1 && (
-              <TouchableOpacity onPress={() => changeStep(step - 1)}>
-                <Text style={styles.navButton}>← Previous</Text>
-              </TouchableOpacity>
-            )}
-            {step < 3 ? (
-              <TouchableOpacity onPress={() => changeStep(step + 1)} style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Text style={styles.navButton}>Next →</Text>
-              </TouchableOpacity>
-            ) : (null)}
+            {step > 1 && <TouchableOpacity onPress={() => changeStep(step - 1)}><Text style={styles.navButton}>← Previous</Text></TouchableOpacity>}
+            {step < 3 && <TouchableOpacity onPress={() => changeStep(step + 1)} style={{ flex: 1, alignItems: 'flex-end' }}><Text style={styles.navButton}>Next →</Text></TouchableOpacity>}
           </View>
-          {step === 3 && 
-            <Button title="Sign Up" onPress={handleSignUp} />
-          }
+
+          {step === 3 && <Button title="Sign Up" onPress={handleSignUp} disabled={loading} />}
         </ScrollView>
+
         <Modal visible={otpVerification} animationType="slide" transparent>
           <OTPVerification
             visible={otpVerification}
             email={form.email}
             onClose={() => setOtpVerification(false)}
-            onVerified={(token) => {
-              setOtpVerification(false);    // close modal
-              navigation.navigate("ApplicationMain"); // proceed
+            onVerified={() => {
+              setOtpVerification(false);
+              navigation.navigate("ApplicationMain");
             }}
           />
         </Modal>
-        {
-          loading && <View style = {styles.loaderContainer}>
-            <Loader message='Loading...'/>
-          </View>
-        }
+
+        {loading && <View style={styles.loaderContainer}><Loader message="Loading..." /></View>}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -10,10 +10,9 @@ import {
 } from 'react-native';
 import colors from '../constants/Colors';
 
-const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
+const Input = ({ placeholder, error, setError = () => {}, value, onChangeText, ...rest }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [secure, setSecure] = useState(true);
-  const [inError, setError] = useState(error);
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   const shouldFloat = isFocused || value !== '';
@@ -100,7 +99,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
           value={value}
           onChangeText={(text) => {
             onChangeText(text);
-            if (error) validate(text);
+            validate(text);
           }}
           secureTextEntry={placeholder.includes('Password') && secure}
           keyboardType={getKeyboardType()}
@@ -134,8 +133,7 @@ const Input = ({ placeholder, error, value, onChangeText, ...rest }) => {
           </TouchableOpacity>
         )}
       </View>
-      {inError && <Text style={styles.errorText}>{inError}</Text>}
-      {error && !inError && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };
